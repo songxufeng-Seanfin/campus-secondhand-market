@@ -8,65 +8,73 @@
 
   <div class="row align-items-center g-4">
     <div class="col-md-7">
-      <h1>同校同学，因闲置而连接</h1>
-      <p class="mt-3 mb-4 opacity-75" style="max-width: 460px;">
-        这里是一个属于学生的二手集市：你发布的每件闲置，
-        都会在同校的另一位同学那里开启新的故事。
+      <h1>让每一件闲置，<br>连接每一位学生</h1>
+      <p class="mt-3 mb-4 lead-text" style="max-width: 460px;">
+        面向所有学生的二手交易平台：发布你的闲置，淘到心仪好物。
+        同城可面交，异地可邮寄——交易方式，你们说了算。
       </p>
       {% if not user.is_authenticated %}
-        <a href="{% url 'register' %}" class="btn btn-light px-4 me-2 rounded-pill" style="color:var(--brand-dark);font-weight:700;">
+        <a href="{% url 'register' %}" class="btn btn-light px-4 me-2 rounded-pill">
           <i class="bi bi-stars me-1"></i>免费注册
         </a>
         <a href="{% url 'login' %}" class="btn btn-outline-light px-4 rounded-pill">登录</a>
       {% else %}
-        <span class="badge bg-white fs-6 px-3 py-2 rounded-pill" style="color:var(--brand-dark)!important;">
-          <i class="bi bi-patch-check-fill me-1"></i>欢迎回来：{{ user.username }}
+        <span class="badge bg-white fs-6 px-3 py-2 rounded-pill" style="color:var(--brand-dark)!important;box-shadow:0 4px 16px rgba(22,119,255,.15);">
+          <i class="bi bi-patch-check-fill me-1" style="color:var(--brand);"></i>欢迎回来：{{ user.username }}
         </span>
       {% endif %}
     </div>
     <div class="col-md-5 text-center">
-      <svg viewBox="0 0 260 190" width="100%" style="max-width:290px;" role="img" aria-label="一群同学手拉手围绕平台">
-        <!-- 中央：平台（地球/集市） -->
-        <circle cx="130" cy="95" r="40" fill="#74c3f0"/>
-        <path d="M108 82 q14 -10 30 -6 q16 4 14 14 q-2 9 -16 9 q-16 0 -14 10 q2 9 16 8" fill="none" stroke="#7ed957" stroke-width="9" stroke-linecap="round"/>
-        <ellipse cx="146" cy="112" rx="12" ry="6" fill="#7ed957"/>
+      <svg viewBox="0 0 260 190" width="100%" style="max-width:290px;" role="img" aria-label="一群学生手拉手围绕平台">
+        <!-- 中央：平台 -->
+        <circle cx="130" cy="95" r="40" fill="url(#centerGrad)"/>
+        <defs>
+          <linearGradient id="centerGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#4096ff"/>
+            <stop offset="1" stop-color="#1677ff"/>
+          </linearGradient>
+        </defs>
+        <g>
+          <rect x="116" y="86" width="28" height="24" rx="5" fill="#ffffff" opacity=".95"/>
+          <path d="M123 86 v-5 a7 7 0 0 1 14 0 v5" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+        </g>
         <!-- 连接虚线环 -->
-        <circle cx="130" cy="95" r="66" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>
+        <circle cx="130" cy="95" r="66" fill="none" stroke="rgba(22,119,255,.35)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>
         <!-- 六个手拉手的小人（60° 均分） -->
         <g transform="rotate(0 130 95)">
-          <circle cx="130" cy="16" r="10" fill="#ffd166"/>
-          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
-          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="130" cy="16" r="10" fill="#4096ff"/>
+          <path d="M130 28 v14" stroke="#1677ff" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#1677ff" stroke-width="6" stroke-linecap="round"/>
         </g>
         <g transform="rotate(60 130 95)">
-          <circle cx="130" cy="16" r="10" fill="#ff9f7b"/>
-          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
-          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="130" cy="16" r="10" fill="#69b4ff"/>
+          <path d="M130 28 v14" stroke="#3d8ef7" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#3d8ef7" stroke-width="6" stroke-linecap="round"/>
         </g>
         <g transform="rotate(120 130 95)">
-          <circle cx="130" cy="16" r="10" fill="#8fd3f4"/>
-          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
-          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="130" cy="16" r="10" fill="#5a8ef5"/>
+          <path d="M130 28 v14" stroke="#2f6fe0" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#2f6fe0" stroke-width="6" stroke-linecap="round"/>
         </g>
         <g transform="rotate(180 130 95)">
-          <circle cx="130" cy="16" r="10" fill="#b7a4f5"/>
-          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
-          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="130" cy="16" r="10" fill="#74d0f0"/>
+          <path d="M130 28 v14" stroke="#2b9fd8" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#2b9fd8" stroke-width="6" stroke-linecap="round"/>
         </g>
         <g transform="rotate(240 130 95)">
-          <circle cx="130" cy="16" r="10" fill="#8ee0c1"/>
-          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
-          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="130" cy="16" r="10" fill="#8fb8ff"/>
+          <path d="M130 28 v14" stroke="#3a7cf0" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#3a7cf0" stroke-width="6" stroke-linecap="round"/>
         </g>
         <g transform="rotate(300 130 95)">
-          <circle cx="130" cy="16" r="10" fill="#f6a6c1"/>
-          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
-          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="130" cy="16" r="10" fill="#6bc7ff"/>
+          <path d="M130 28 v14" stroke="#1f7ae0" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#1f7ae0" stroke-width="6" stroke-linecap="round"/>
         </g>
       </svg>
       <div class="d-flex justify-content-center gap-2 mt-2">
-        <span class="badge rounded-pill" style="background:rgba(255,255,255,.18);color:#fff;">🎓 同校同学</span>
-        <span class="badge rounded-pill" style="background:rgba(255,255,255,.18);color:#fff;">🔗 因闲置而连接</span>
+        <span class="badge rounded-pill" style="background:rgba(22,119,255,.10);color:var(--brand-dark);">🎓 学生认证</span>
+        <span class="badge rounded-pill" style="background:rgba(22,119,255,.10);color:var(--brand-dark);">🔗 因闲置而连接</span>
       </div>
     </div>
   </div>
@@ -98,10 +106,10 @@
   <div class="col-md-4">
     <div class="card card-soft h-100">
       <div class="card-body d-flex align-items-center gap-3 p-3">
-        <span class="feature-icon">🎓</span>
+        <span class="feature-icon"><i class="bi bi-mortarboard"></i></span>
         <div>
-          <div class="fw-bold">同校实名</div>
-          <p class="text-muted small mb-0">校园网认证注册，买卖双方都是身边同学</p>
+          <div class="fw-bold">学生认证</div>
+          <p class="text-muted small mb-0">面向所有在校学生，跨校也能放心交易</p>
         </div>
       </div>
     </div>
@@ -109,10 +117,10 @@
   <div class="col-md-4">
     <div class="card card-soft h-100">
       <div class="card-body d-flex align-items-center gap-3 p-3">
-        <span class="feature-icon">🤝</span>
+        <span class="feature-icon"><i class="bi bi-arrow-repeat"></i></span>
         <div>
-          <div class="fw-bold">当面交易</div>
-          <p class="text-muted small mb-0">校内面交，见货付款，没有快递等待</p>
+          <div class="fw-bold">面交 / 邮寄</div>
+          <p class="text-muted small mb-0">同城当面交易，异地快递邮寄，双方协商决定</p>
         </div>
       </div>
     </div>
@@ -120,7 +128,7 @@
   <div class="col-md-4">
     <div class="card card-soft h-100">
       <div class="card-body d-flex align-items-center gap-3 p-3">
-        <span class="feature-icon">⚡</span>
+        <span class="feature-icon"><i class="bi bi-lightning-charge"></i></span>
         <div>
           <div class="fw-bold">分钟级发布</div>
           <p class="text-muted small mb-0">拍照定价一步发布，闲置快速流转</p>
@@ -133,17 +141,17 @@
 <!-- 商品区（空状态） -->
 <div class="card card-soft">
   <div class="card-body text-center py-5 text-muted">
-    <i class="bi bi-box-seam" style="font-size:44px;color:#c9c2f5;"></i>
+    <i class="bi bi-box-seam" style="font-size:44px;color:#b3d2ff;"></i>
     <p class="mt-3 mb-1 fw-bold text-dark">商品马上就来</p>
-    <p class="small mb-0">商品发布功能开发中——届时首页会变成商品瀑布流，敬请期待 🚧</p>
+    <p class="small mb-0">商品发布功能开发中——届时首页会变成商品瀑布流，敬请期待</p>
   </div>
 </div>
 
 <style>
   .cat-chip {
-    background: #fff;
-    border: 1.5px solid #e8e5fa;
-    color: #4b4470;
+    background: rgba(255, 255, 255, .8);
+    border: 1.5px solid rgba(22, 119, 255, .12);
+    color: #3d5a80;
     border-radius: 999px;
     padding: 8px 18px;
     font-size: 14px;
