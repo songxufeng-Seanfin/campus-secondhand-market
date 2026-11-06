@@ -25,7 +25,7 @@
       {% endif %}
     </div>
     <div class="col-md-5 text-center">
-      <svg viewBox="0 0 260 190" width="100%" style="max-width:300px;" role="img" aria-label="闲小集IP形象：纸箱小怪兽小集">
+      <svg viewBox="0 0 260 190" width="100%" style="max-width:300px;" role="img" aria-label="闲小集IP形象：wink的小集连接各领域好物">
         <defs>
           <linearGradient id="boxGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#f7e6bd"/>
@@ -34,18 +34,39 @@
         </defs>
         <!-- 地面影子 -->
         <ellipse cx="130" cy="170" rx="54" ry="8" fill="rgba(22,119,255,.12)"/>
-        <!-- 连接线：好物与小集相连 -->
+        <!-- 连接线：各领域好物与小集相连 -->
         <g stroke="rgba(22,119,255,.28)" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round">
-          <path d="M66 58 L96 82" fill="none"/>
-          <path d="M194 56 L166 82" fill="none"/>
-          <path d="M52 126 L74 120" fill="none"/>
-          <path d="M208 126 L186 120" fill="none"/>
-          <path d="M130 30 L130 52" fill="none"/>
+          <path d="M66 52 L100 82" fill="none"/>
+          <path d="M194 52 L162 82" fill="none"/>
+          <path d="M44 118 L74 122" fill="none"/>
+          <path d="M216 118 L186 122" fill="none"/>
+          <path d="M130 28 L130 52" fill="none"/>
+        </g>
+        <!-- 领域好物：教材书籍 / 数码电子 / 运动单车 / 乐器爱好 / 影音娱乐 -->
+        <g class="float-chip">
+          <circle cx="56" cy="44" r="17" fill="#ffffff"/>
+          <text x="56" y="51" text-anchor="middle" font-size="17">📚</text>
+        </g>
+        <g class="float-chip" style="animation-delay:-1.1s">
+          <circle cx="204" cy="44" r="17" fill="#ffffff"/>
+          <text x="204" y="51" text-anchor="middle" font-size="17">💻</text>
+        </g>
+        <g class="float-chip" style="animation-delay:-2.2s">
+          <circle cx="36" cy="126" r="17" fill="#ffffff"/>
+          <text x="36" y="133" text-anchor="middle" font-size="17">🚲</text>
+        </g>
+        <g class="float-chip" style="animation-delay:-0.6s">
+          <circle cx="224" cy="126" r="17" fill="#ffffff"/>
+          <text x="224" y="133" text-anchor="middle" font-size="17">🎸</text>
+        </g>
+        <g class="float-chip" style="animation-delay:-1.7s">
+          <circle cx="130" cy="18" r="16" fill="#ffffff"/>
+          <text x="130" y="24.5" text-anchor="middle" font-size="16">🎧</text>
         </g>
         <!-- 小脚 -->
         <rect x="106" y="148" width="15" height="16" rx="7" fill="#d9b26e"/>
         <rect x="139" y="148" width="15" height="16" rx="7" fill="#d9b26e"/>
-        <!-- 纸箱身体 -->
+        <!-- 纸箱身体（按头像设计语言） -->
         <rect x="90" y="78" width="80" height="74" rx="18" fill="url(#boxGrad)"/>
         <rect x="90" y="78" width="80" height="74" rx="18" fill="none" stroke="#e0ba7c" stroke-width="1.5"/>
         <!-- 顶部波浪线（和头像一致） -->
@@ -54,16 +75,17 @@
         <path d="M130 78 Q130 68 134 62" fill="none" stroke="#5cb85c" stroke-width="3" stroke-linecap="round"/>
         <ellipse cx="125" cy="59" rx="7.5" ry="4.5" fill="#7ed957" transform="rotate(-28 125 59)"/>
         <ellipse cx="139" cy="57" rx="7.5" ry="4.5" fill="#5cb85c" transform="rotate(24 139 57)"/>
-        <!-- 豆豆眼睛 -->
-        <circle cx="114" cy="106" r="8.5" fill="#2f2a1e"/>
-        <circle cx="146" cy="106" r="8.5" fill="#2f2a1e"/>
-        <circle cx="111.2" cy="102.8" r="2.8" fill="#ffffff"/>
-        <circle cx="143.2" cy="102.8" r="2.8" fill="#ffffff"/>
-        <circle cx="117" cy="109" r="1.3" fill="#ffffff" opacity=".8"/>
-        <circle cx="149" cy="109" r="1.3" fill="#ffffff" opacity=".8"/>
+        <!-- 左眼：wink 闭眼（弯弯的笑眼） -->
+        <path d="M106 106 Q114 99 122 106" fill="none" stroke="#2f2a1e" stroke-width="4" stroke-linecap="round"/>
+        <!-- 右眼：豆豆眼 -->
+        <circle cx="146" cy="105" r="8.5" fill="#2f2a1e"/>
+        <circle cx="143.2" cy="101.8" r="2.8" fill="#ffffff"/>
+        <circle cx="149" cy="108" r="1.3" fill="#ffffff" opacity=".8"/>
         <!-- 腮红 -->
         <ellipse cx="100" cy="118" rx="6" ry="3.5" fill="#f6a58c" opacity=".55"/>
         <ellipse cx="160" cy="118" rx="6" ry="3.5" fill="#f6a58c" opacity=".55"/>
+        <!-- 得意的微笑嘴 -->
+        <path d="M121 124 Q130 132 139 124" fill="none" stroke="#a87f4a" stroke-width="3" stroke-linecap="round"/>
         <!-- 双手抱小箱子（搬运中） -->
         <path d="M92 114 Q102 122 112 125" fill="none" stroke="#d9b26e" stroke-width="10" stroke-linecap="round"/>
         <path d="M168 114 Q158 122 148 125" fill="none" stroke="#d9b26e" stroke-width="10" stroke-linecap="round"/>
@@ -74,9 +96,6 @@
         <!-- 绿色循环徽章 -->
         <circle cx="164" cy="146" r="9" fill="#52c41a"/>
         <text x="164" y="150.5" text-anchor="middle" font-size="10.5" fill="#ffffff">&#x267b;</text>
-        <!-- 点缀星星 -->
-        <path d="M206 44 l3 6 6 3 -6 3 -3 6 -3 -6 -6 -3 6 -3 Z" fill="#ffd166"/>
-        <path d="M46 36 l2.4 4.8 4.8 2.4 -4.8 2.4 -2.4 4.8 -2.4 -4.8 -4.8 -2.4 4.8 -2.4 Z" fill="#9cc9ff"/>
       </svg>
       <div class="d-flex justify-content-center gap-2 mt-2">
         <span class="badge rounded-pill" style="background:rgba(22,119,255,.10);color:var(--brand-dark);">🎓 学生认证</span>
