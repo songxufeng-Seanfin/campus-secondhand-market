@@ -1,14 +1,43 @@
 {% extends "base.html" %}
 {% block title %}个人中心 - 校园二手集市{% endblock %}
 {% block content %}
-<div class="card shadow-sm">
-  <div class="card-body">
-    <h4 class="card-title mb-4">个人中心</h4>
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item">用户名：{{ user.username }}</li>
-      <li class="list-group-item">手机号：{{ user.phone|default:"未填写" }}</li>
-      <li class="list-group-item">注册时间：{{ user.date_joined|date:"Y-m-d H:i" }}</li>
-    </ul>
+<div class="card card-soft mb-3">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <span class="feature-icon" style="width:64px;height:64px;font-size:30px;border-radius:50%;">
+        <i class="bi bi-person"></i>
+      </span>
+      <div>
+        <h4 class="mb-1 fw-bold">{{ user.username }}</h4>
+        <span class="badge bg-success-subtle text-success">校园认证用户</span>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="p-3 rounded" style="background:var(--brand-light);">
+          <div class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i>手机号</div>
+          <strong>{{ user.phone|default:"未填写" }}</strong>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 rounded" style="background:var(--brand-light);">
+          <div class="text-muted small mb-1"><i class="bi bi-envelope me-1"></i>邮箱</div>
+          <strong>{{ user.email|default:"未绑定" }}</strong>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 rounded" style="background:var(--brand-light);">
+          <div class="text-muted small mb-1"><i class="bi bi-calendar-check me-1"></i>注册时间</div>
+          <strong>{{ user.date_joined|date:"Y-m-d H:i" }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card card-soft">
+  <div class="card-body p-4 text-center text-muted">
+    <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
+    我发布的商品（商品模块开发中）
   </div>
 </div>
 {% endblock %}

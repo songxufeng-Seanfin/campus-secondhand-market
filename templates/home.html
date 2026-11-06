@@ -1,16 +1,60 @@
 {% extends "base.html" %}
 {% block title %}首页 - 校园二手集市{% endblock %}
 {% block content %}
-<div class="card shadow-sm">
-  <div class="card-body text-center py-5">
-    <h3>🎉 欢迎来到校园二手集市</h3>
-    <p class="text-muted mt-3">
-      {% if user.is_authenticated %}
-        已登录为 <strong>{{ user.username }}</strong>
-      {% else %}
-        商品模块开发中，敬请期待～
-      {% endif %}
-    </p>
+<section class="hero mb-4">
+  <h1>让闲置好物，在校园里流动起来 🎓</h1>
+  <p class="mt-3 mb-4 opacity-75" style="max-width: 520px;">
+    专为在校学生打造的二手交易平台：发布你的闲置、淘到心仪好物，
+    交易就在同校之间，安全又方便。
+  </p>
+  {% if not user.is_authenticated %}
+    <a href="{% url 'register' %}" class="btn btn-light px-4 me-2" style="color:var(--brand-dark);font-weight:600;">
+      <i class="bi bi-person-plus me-1"></i>立即加入
+    </a>
+    <a href="{% url 'login' %}" class="btn btn-outline-light px-4">登录账号</a>
+  {% else %}
+    <span class="badge bg-light text-success fs-6 px-3 py-2">
+      <i class="bi bi-patch-check me-1"></i>已登录：{{ user.username }}
+    </span>
+  {% endif %}
+</section>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card card-soft h-100">
+      <div class="card-body d-flex align-items-start gap-3">
+        <span class="feature-icon"><i class="bi bi-megaphone"></i></span>
+        <div>
+          <h6 class="mb-1 fw-bold">商品发布</h6>
+          <p class="text-muted small mb-0">拍照上传、定价描述，一分钟挂出你的闲置</p>
+          <span class="badge bg-success-subtle text-success mt-2">开发中</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card card-soft h-100">
+      <div class="card-body d-flex align-items-start gap-3">
+        <span class="feature-icon"><i class="bi bi-grid"></i></span>
+        <div>
+          <h6 class="mb-1 fw-bold">分类浏览</h6>
+          <p class="text-muted small mb-0">教材、数码、生活用品……按类目快速定位</p>
+          <span class="badge bg-success-subtle text-success mt-2">开发中</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card card-soft h-100">
+      <div class="card-body d-flex align-items-start gap-3">
+        <span class="feature-icon"><i class="bi bi-search"></i></span>
+        <div>
+          <h6 class="mb-1 fw-bold">关键词搜索</h6>
+          <p class="text-muted small mb-0">精准搜索想要的宝贝，不错过每一件好物</p>
+          <span class="badge bg-success-subtle text-success mt-2">开发中</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
