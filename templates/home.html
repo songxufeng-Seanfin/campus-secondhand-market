@@ -8,10 +8,10 @@
 
   <div class="row align-items-center g-4">
     <div class="col-md-7">
-      <h1>你的闲置，正是别人在找的宝贝</h1>
+      <h1>同校同学，因闲置而连接</h1>
       <p class="mt-3 mb-4 opacity-75" style="max-width: 460px;">
-        同校学生的二手交易平台。发布闲置、面对面交易，
-        让每件物品的下一站都值得被期待。
+        这里是一个属于学生的二手集市：你发布的每件闲置，
+        都会在同校的另一位同学那里开启新的故事。
       </p>
       {% if not user.is_authenticated %}
         <a href="{% url 'register' %}" class="btn btn-light px-4 me-2 rounded-pill" style="color:var(--brand-dark);font-weight:700;">
@@ -25,42 +25,48 @@
       {% endif %}
     </div>
     <div class="col-md-5 text-center">
-      <svg viewBox="0 0 260 190" width="100%" style="max-width:280px;" role="img" aria-label="两个小人传递交易">
-        <ellipse cx="130" cy="172" rx="105" ry="9" fill="rgba(0,0,0,.15)"/>
-        <!-- 左侧小人 -->
-        <circle cx="52" cy="52" r="17" fill="#ffffff"/>
-        <path d="M52 70 v46" stroke="#ffffff" stroke-width="13" stroke-linecap="round"/>
-        <path d="M52 96 L36 126 M52 96 L68 126" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
-        <path d="M52 82 L92 66" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
-        <!-- 右侧小人 -->
-        <circle cx="208" cy="52" r="17" fill="#ffffff"/>
-        <path d="M208 70 v46" stroke="#ffffff" stroke-width="13" stroke-linecap="round"/>
-        <path d="M208 96 L192 126 M208 96 L224 126" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
-        <path d="M208 82 L168 66" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
-        <!-- 中间传递的包裹 -->
-        <rect x="112" y="52" width="38" height="34" rx="5" fill="#ffd166"/>
-        <rect x="127" y="52" width="8" height="34" fill="#f4b942"/>
-        <!-- 金币回流箭头 -->
-        <path d="M170 34 C150 16 112 16 92 32" stroke="#ffffff" stroke-width="3" fill="none" stroke-dasharray="6 6" marker-end="url(#coinArrow)"/>
-        <defs><marker id="coinArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></marker></defs>
-        <circle cx="131" cy="16" r="11" fill="#ffd166"/>
-        <text x="131" y="21" text-anchor="middle" font-size="13" font-weight="bold" fill="#7a5b00">¥</text>
-        <!-- 打勾牌子（成交） -->
-        <g>
-          <rect x="6" y="88" width="42" height="34" rx="7" fill="#22c58b"/>
-          <rect x="24" y="122" width="6" height="20" rx="3" fill="#ffffff" opacity=".85"/>
-          <path d="M16 105 L23 112 L38 96" stroke="#ffffff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg viewBox="0 0 260 190" width="100%" style="max-width:290px;" role="img" aria-label="一群同学手拉手围绕平台">
+        <!-- 中央：平台（地球/集市） -->
+        <circle cx="130" cy="95" r="40" fill="#74c3f0"/>
+        <path d="M108 82 q14 -10 30 -6 q16 4 14 14 q-2 9 -16 9 q-16 0 -14 10 q2 9 16 8" fill="none" stroke="#7ed957" stroke-width="9" stroke-linecap="round"/>
+        <ellipse cx="146" cy="112" rx="12" ry="6" fill="#7ed957"/>
+        <!-- 连接虚线环 -->
+        <circle cx="130" cy="95" r="66" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>
+        <!-- 六个手拉手的小人（60° 均分） -->
+        <g transform="rotate(0 130 95)">
+          <circle cx="130" cy="16" r="10" fill="#ffd166"/>
+          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
         </g>
-        <!-- 打叉牌子（不成交） -->
-        <g>
-          <rect x="212" y="88" width="42" height="34" rx="7" fill="#ff6b6b"/>
-          <rect x="230" y="122" width="6" height="20" rx="3" fill="#ffffff" opacity=".85"/>
-          <path d="M224 96 L242 114 M242 96 L224 114" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+        <g transform="rotate(60 130 95)">
+          <circle cx="130" cy="16" r="10" fill="#ff9f7b"/>
+          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <g transform="rotate(120 130 95)">
+          <circle cx="130" cy="16" r="10" fill="#8fd3f4"/>
+          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <g transform="rotate(180 130 95)">
+          <circle cx="130" cy="16" r="10" fill="#b7a4f5"/>
+          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <g transform="rotate(240 130 95)">
+          <circle cx="130" cy="16" r="10" fill="#8ee0c1"/>
+          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <g transform="rotate(300 130 95)">
+          <circle cx="130" cy="16" r="10" fill="#f6a6c1"/>
+          <path d="M130 28 v14" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+          <path d="M130 34 L106 30 M130 34 L154 30" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
         </g>
       </svg>
       <div class="d-flex justify-content-center gap-2 mt-2">
-        <span class="badge rounded-pill" style="background:rgba(255,255,255,.18);color:#fff;">✅ 面交确认</span>
-        <span class="badge rounded-pill" style="background:rgba(255,255,255,.18);color:#fff;">💰 当面结算</span>
+        <span class="badge rounded-pill" style="background:rgba(255,255,255,.18);color:#fff;">🎓 同校同学</span>
+        <span class="badge rounded-pill" style="background:rgba(255,255,255,.18);color:#fff;">🔗 因闲置而连接</span>
       </div>
     </div>
   </div>
