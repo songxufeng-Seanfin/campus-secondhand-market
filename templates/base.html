@@ -18,14 +18,47 @@
     body {
       font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
       color: var(--ink);
-      /* 蓝白渐变底色，像支付宝商家平台的高透明层次感 */
+      /* 更浓一点的蓝白渐变底色 */
       background:
-        radial-gradient(circle at 15% 10%, rgba(22, 119, 255, .07) 0, transparent 30%),
-        radial-gradient(circle at 85% 20%, rgba(105, 180, 255, .08) 0, transparent 28%),
-        linear-gradient(180deg, #f2f8ff 0%, #f8fbff 45%, #ffffff 100%);
+        radial-gradient(circle at 15% 10%, rgba(22, 119, 255, .12) 0, transparent 32%),
+        radial-gradient(circle at 85% 20%, rgba(64, 150, 255, .14) 0, transparent 30%),
+        linear-gradient(180deg, #dcecff 0%, #eaf4ff 40%, #f8fbff 75%, #ffffff 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+    }
+    /* 全屏漂浮装饰（缓慢游动的半透明泡泡） */
+    .bg-decor {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .bg-decor i {
+      position: absolute;
+      display: block;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(64, 150, 255, .16), rgba(105, 180, 255, .05));
+      animation: drift ease-in-out infinite alternate;
+    }
+    .bg-decor .d1 { width: 220px; height: 220px; left: -60px;  top: 12%;  animation-duration: 16s; }
+    .bg-decor .d2 { width: 130px; height: 130px; left: 18%;   bottom: 8%;  animation-duration: 13s; animation-delay: -4s; }
+    .bg-decor .d3 { width: 320px; height: 320px; right: -100px; top: 30%;  animation-duration: 20s; animation-delay: -8s; }
+    .bg-decor .d4 { width: 90px;  height: 90px;  right: 22%;  top: 10%;   animation-duration: 11s; animation-delay: -2s; }
+    .bg-decor .d5 { width: 60px;  height: 60px;  left: 42%;   top: 55%;   animation-duration: 14s; animation-delay: -6s; }
+    .bg-decor .d6 { width: 170px; height: 170px; right: 8%;   bottom: 12%; animation-duration: 18s; animation-delay: -10s; }
+    .bg-decor .sq {
+      border-radius: 22%;
+      background: linear-gradient(135deg, rgba(22, 119, 255, .10), rgba(105, 180, 255, .04));
+    }
+    @keyframes drift {
+      0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+      50%  { transform: translate(28px, -34px) rotate(10deg) scale(1.06); }
+      100% { transform: translate(-24px, 26px) rotate(-8deg) scale(.96); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bg-decor i { animation: none; }
     }
     main { flex: 1; }
     /* 导航栏 */
@@ -139,6 +172,11 @@
   </style>
 </head>
 <body>
+<!-- 漂浮背景装饰 -->
+<div class="bg-decor" aria-hidden="true">
+  <i class="d1"></i><i class="d2"></i><i class="d3"></i>
+  <i class="d4"></i><i class="d5 sq"></i><i class="d6 sq"></i>
+</div>
 <nav class="navbar navbar-expand navbar-main sticky-top py-3">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
