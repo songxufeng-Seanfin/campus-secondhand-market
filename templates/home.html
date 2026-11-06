@@ -97,63 +97,63 @@
 
         <!-- 小脚（带体积：底色+高光） -->
         <g filter="url(#softShadow)">
-          <rect x="106" y="148" width="15" height="16" rx="7" fill="url(#limbGrad)"/>
-          <rect x="139" y="148" width="15" height="16" rx="7" fill="url(#limbGrad)"/>
-          <rect x="108.5" y="150" width="4" height="9" rx="2" fill="#ffffff" opacity=".35"/>
-          <rect x="141.5" y="150" width="4" height="9" rx="2" fill="#ffffff" opacity=".35"/>
+          <rect x="107" y="150" width="14" height="14" rx="5" fill="url(#limbGrad)"/>
+          <rect x="139" y="150" width="14" height="14" rx="5" fill="url(#limbGrad)"/>
+          <rect x="109.5" y="152" width="4" height="8" rx="2" fill="#ffffff" opacity=".35"/>
+          <rect x="141.5" y="152" width="4" height="8" rx="2" fill="#ffffff" opacity=".35"/>
         </g>
 
-        <!-- 纸箱身体：整体投影 + 渐变体积 -->
+        <!-- 方方正正的纸箱身体：整体投影 + 渐变体积 -->
         <g filter="url(#softShadow)">
-          <rect x="90" y="78" width="80" height="74" rx="18" fill="url(#boxGrad)"/>
+          <rect x="92" y="78" width="76" height="74" rx="6" fill="url(#boxGrad)"/>
         </g>
-        <!-- 右下背光面（暗部） -->
-        <path d="M170 96 a18 18 0 0 1 0 56 L170 96 Z" fill="#c99a55" opacity=".28"/>
-        <rect x="90" y="132" width="80" height="20" rx="10" fill="#c99a55" opacity=".14"/>
+        <!-- 纸箱结构线：顶盖折痕 -->
+        <path d="M92 90 h76" stroke="#d8ab6b" stroke-width="1.5" opacity=".7"/>
+        <!-- 中缝胶带（纸箱感） -->
+        <rect x="126" y="90" width="8" height="62" fill="#e9cf9a" opacity=".85"/>
+        <path d="M126 90 h8 v62 h-8 Z" fill="none" stroke="#d8ab6b" stroke-width="1" opacity=".6"/>
+        <!-- 右侧背光面（暗部） -->
+        <rect x="160" y="78" width="8" height="74" fill="#c99a55" opacity=".30"/>
+        <rect x="92" y="138" width="76" height="14" fill="#c99a55" opacity=".14"/>
         <!-- 左上受光高光 -->
-        <path d="M104 82 h22 a16 16 0 0 1 16 16 v2 h-38 Z" fill="#ffffff" opacity=".38"/>
-        <ellipse cx="106" cy="98" rx="7" ry="14" fill="#ffffff" opacity=".22"/>
-        <!-- 纸箱描边 -->
-        <rect x="90" y="78" width="80" height="74" rx="18" fill="none" stroke="#dcae6b" stroke-width="1.5"/>
-        <!-- 顶部波浪线（和头像一致，带阴影） -->
-        <path d="M96 80 Q104 73 112 79 Q120 85 130 79 Q140 73 148 79 Q156 85 164 80" fill="none" stroke="#c39a5f" stroke-width="3.5" stroke-linecap="round" opacity=".55" transform="translate(0 1.5)"/>
-        <path d="M96 80 Q104 73 112 79 Q120 85 130 79 Q140 73 148 79 Q156 85 164 80" fill="none" stroke="#a87f4a" stroke-width="3.5" stroke-linecap="round"/>
+        <rect x="95" y="81" width="20" height="5" rx="2.5" fill="#ffffff" opacity=".40"/>
+        <rect x="95" y="81" width="4" height="40" rx="2" fill="#ffffff" opacity=".22"/>
+        <!-- 纸箱描边（方正） -->
+        <rect x="92" y="78" width="76" height="74" rx="6" fill="none" stroke="#d8ab6b" stroke-width="1.5"/>
 
-        <!-- 左眼：wink 闭眼（弯弯的笑眼） -->
-        <path d="M106 106 Q114 99 122 106" fill="none" stroke="#2f2a1e" stroke-width="4" stroke-linecap="round"/>
-        <!-- 右眼：豆豆眼（径向渐变+双层高光） -->
-        <circle cx="146" cy="105" r="8.5" fill="url(#eyeGrad)"/>
-        <circle cx="143.2" cy="101.8" r="2.8" fill="#ffffff"/>
-        <circle cx="149" cy="108" r="1.3" fill="#ffffff" opacity=".8"/>
+        <!-- 左眼：wink 闭眼（简单弧线） -->
+        <path d="M105 108 Q113 101 121 108" fill="none" stroke="#2f2a1e" stroke-width="3.5" stroke-linecap="round"/>
+        <!-- 右眼：简单的豆豆点 -->
+        <circle cx="146" cy="105" r="4.5" fill="#2f2a1e"/>
+        <circle cx="147.6" cy="103.4" r="1.3" fill="#ffffff"/>
 
         <!-- 腮红 -->
-        <ellipse cx="100" cy="118" rx="6" ry="3.5" fill="#f6a58c" opacity=".55"/>
-        <ellipse cx="160" cy="118" rx="6" ry="3.5" fill="#f6a58c" opacity=".55"/>
-        <!-- 得意的微笑嘴 -->
-        <path d="M121 124 Q130 132 139 124" fill="none" stroke="#a87f4a" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="104" cy="116" rx="5.5" ry="3" fill="#f6a58c" opacity=".5"/>
+        <ellipse cx="155" cy="116" rx="5.5" ry="3" fill="#f6a58c" opacity=".5"/>
+        <!-- 自嘲熊式小嘴：一条浅浅的小弧线 -->
+        <path d="M126 119 Q131 124 136 119" fill="none" stroke="#2f2a1e" stroke-width="2.5" stroke-linecap="round"/>
 
         <!-- 双手（渐变圆柱感）抱小箱子 -->
-        <path d="M92 114 Q102 122 112 125" fill="none" stroke="#c99a55" stroke-width="12" stroke-linecap="round" opacity=".4"/>
-        <path d="M92 114 Q102 122 112 125" fill="none" stroke="url(#limbGrad)" stroke-width="10" stroke-linecap="round"/>
-        <path d="M168 114 Q158 122 148 125" fill="none" stroke="#c99a55" stroke-width="12" stroke-linecap="round" opacity=".4"/>
-        <path d="M168 114 Q158 122 148 125" fill="none" stroke="url(#limbGrad)" stroke-width="10" stroke-linecap="round"/>
+        <path d="M94 116 Q103 124 113 127" fill="none" stroke="#c99a55" stroke-width="12" stroke-linecap="round" opacity=".4"/>
+        <path d="M94 116 Q103 124 113 127" fill="none" stroke="url(#limbGrad)" stroke-width="10" stroke-linecap="round"/>
+        <path d="M166 116 Q157 124 147 127" fill="none" stroke="#c99a55" stroke-width="12" stroke-linecap="round" opacity=".4"/>
+        <path d="M166 116 Q157 124 147 127" fill="none" stroke="url(#limbGrad)" stroke-width="10" stroke-linecap="round"/>
         <!-- 怀里的小箱子（渐变+投影+高光） -->
         <g filter="url(#softShadow)">
-          <rect x="110" y="120" width="40" height="31" rx="6" fill="url(#miniBoxGrad)"/>
+          <rect x="110" y="122" width="40" height="30" rx="4" fill="url(#miniBoxGrad)"/>
         </g>
-        <rect x="110" y="120" width="40" height="31" rx="6" fill="none" stroke="#dcae6b" stroke-width="1.2"/>
-        <rect x="126" y="120" width="8" height="31" fill="#d0a468"/>
-        <rect x="113" y="123" width="10" height="5" rx="2.5" fill="#ffffff" opacity=".4"/>
-        <circle cx="112" cy="122" r="6" fill="url(#limbGrad)"/>
-        <circle cx="148" cy="122" r="6" fill="url(#limbGrad)"/>
-        <circle cx="110.5" cy="120" r="1.8" fill="#ffffff" opacity=".45"/>
-        <circle cx="146.5" cy="120" r="1.8" fill="#ffffff" opacity=".45"/>
+        <rect x="110" y="122" width="40" height="30" rx="4" fill="none" stroke="#d8ab6b" stroke-width="1.2"/>
+        <rect x="126" y="122" width="8" height="30" fill="#d0a468"/>
+        <rect x="113" y="125" width="10" height="5" rx="2.5" fill="#ffffff" opacity=".4"/>
+        <circle cx="112" cy="124" r="6" fill="url(#limbGrad)"/>
+        <circle cx="148" cy="124" r="6" fill="url(#limbGrad)"/>
+        <circle cx="110.5" cy="122" r="1.8" fill="#ffffff" opacity=".45"/>
+        <circle cx="146.5" cy="122" r="1.8" fill="#ffffff" opacity=".45"/>
         <!-- 绿色循环徽章（带高光） -->
         <g filter="url(#chipShadow)">
-          <circle cx="164" cy="146" r="9" fill="#52c41a"/>
-          <path d="M157.5 143 a8 8 0 0 1 10 -3" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+          <circle cx="164" cy="148" r="9" fill="#52c41a"/>
+          <path d="M157.5 145 a8 8 0 0 1 10 -3" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity=".7"/>
         </g>
-        <text x="164" y="150.5" text-anchor="middle" font-size="10.5" fill="#ffffff">&#x267b;</text>
       </svg>
       <div class="d-flex justify-content-center gap-2 mt-2">
         <span class="badge rounded-pill" style="background:rgba(22,119,255,.10);color:var(--brand-dark);">🎓 学生认证</span>
