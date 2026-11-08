@@ -1,0 +1,539 @@
+{% extends "base.html" %}
+{% block title %}{% if active %}和 {{ other.username }} 聊 · {% endif %}消息 - 闲小集{% endblock %}
+{% block body_class %}chat-app{% endblock %}
+
+{% block content %}
+<div class="im {% if active %}has-active{% endif %}">
+
+  <!-- ============ 左侧：会话列表（不同商品 / 不同买家都在这里） ============ -->
+  <aside class="im-side">
+    <div class="im-side-head">
+      <a href="{% url 'home' %}" class="im-brand">
+        <svg width="22" height="20" viewBox="0 0 30 27" aria-hidden="true">
+          <rect x="3.5" y="7.5" width="23" height="16" rx="3" fill="#e8f1ff" stroke="#1677ff" stroke-width="1.6"/>
+          <path d="M3.5 11.5h23" stroke="#1677ff" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="11.5" cy="17" r="1.5" fill="#1677ff"/>
+          <circle cx="18.5" cy="17" r="1.5" fill="#1677ff"/>
+          <path d="M13 20.6q2 1.4 4 0" fill="none" stroke="#1677ff" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        消息
+      </a>
+      <a href="{% url 'home' %}" class="im-back-site">回集市</a>
+    </div>
+
+    <div class="im-search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="imSearch" class="im-search" placeholder="搜索同学或商品" autocomplete="off">
+    </div>
+
+    <div class="im-convs" id="imConvs">
+      {% for c in conversations %}
+        <a href="{% url 'chat_detail' c.pk %}"
+           class="im-conv {% if active and active.pk == c.pk %}is-active{% endif %} {% if c.unread %}is-unread{% endif %}"
+           data-text="{% if c.buyer_id == user.id %}{{ c.seller.username }}{% else %}{{ c.buyer.username }}{% endif %} {{ c.product.title }}">
+          <span class="im-ava">
+            {% if c.buyer_id == user.id %}
+              {% if c.seller.avatar %}<img src="{{ c.seller.avatar.url }}" alt="">{% else %}{{ c.seller.username|first }}{% endif %}
+            {% else %}
+              {% if c.buyer.avatar %}<img src="{{ c.buyer.avatar.url }}" alt="">{% else %}{{ c.buyer.username|first }}{% endif %}
+            {% endif %}
+          </span>
+
+          <div class="im-conv-main">
+            <div class="im-conv-top">
+              <span class="im-name">
+                {% if c.buyer_id == user.id %}{{ c.seller.username }}{% else %}{{ c.buyer.username }}{% endif %}
+              </span>
+              <span class="im-time">{% if c.last_at %}{{ c.last_at|date:"m-d H:i" }}{% endif %}</span>
+            </div>
+            <div class="im-conv-prod">{{ c.product.title }}</div>
+            <div class="im-conv-last">
+              {% if c.last_body %}{{ c.last_body|truncatechars:24 }}{% else %}还没有消息，打个招呼吧{% endif %}
+            </div>
+          </div>
+
+          {% if c.unread %}<span class="im-badge">{{ c.unread }}</span>{% endif %}
+        </a>
+      {% empty %}
+        <div class="im-side-empty">
+          <div class="im-side-empty-ico"><i class="bi bi-chat-dots"></i></div>
+          <p class="mb-1 fw-semibold">还没有聊天</p>
+          <p class="mb-0 small">在商品页点「我想要」，就能和卖家聊起来</p>
+        </div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <!-- ============ 右侧：聊天窗 ============ -->
+  <section class="im-main">
+    {% if active %}
+      <!-- 顶部信息条 -->
+      <header class="im-head">
+        <a href="{% url 'chat_list' %}" class="im-back" aria-label="返回会话列表"><i class="bi bi-chevron-left"></i></a>
+        <div class="im-head-title">
+          <strong>{{ other.username }}</strong>
+          <span class="im-role {% if other == active.seller %}is-seller{% else %}is-buyer{% endif %}">
+            {% if other == active.seller %}卖家{% else %}买家{% endif %}
+          </span>
+        </div>
+        <a href="{% url 'product_detail' product.pk %}" class="im-head-link">查看商品</a>
+      </header>
+
+      <!-- 商品卡片：协商中的这件东西 -->
+      <div class="im-product">
+        <a href="{% url 'product_detail' product.pk %}" class="im-product-thumb">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.title }}">
+          {% else %}
+            <span>{{ product.category.icon }}</span>
+          {% endif %}
+        </a>
+        <div class="im-product-main">
+          <a href="{% url 'product_detail' product.pk %}" class="im-product-title">{{ product.title }}</a>
+          <div class="im-product-meta">
+            <span class="im-price"><span class="price-symbol">¥</span>{{ product.price|floatformat:"-2" }}</span>
+            <span class="im-tag">{{ product.get_condition_display }}</span>
+            <span class="im-ship">{% if product.is_free_shipping %}包邮{% else %}不包邮 · 运费 ¥{{ product.shipping_fee_amount }}{% endif %}</span>
+          </div>
+        </div>
+        <div class="im-product-action">
+          {% if product.is_on_sale %}
+            <a href="{% url 'checkout' product.pk %}" class="btn btn-brand btn-sm px-3">购买</a>
+          {% elif product.is_sold %}
+            <span class="btn btn-sm px-3 im-btn-off">已售出</span>
+          {% else %}
+            <span class="btn btn-sm px-3 im-btn-off">已预订</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if my_order %}
+        <div class="im-order-tip">
+          <i class="bi bi-receipt"></i>
+          你已下过单：{{ my_order.get_status_display }} · {{ my_order.get_trade_mode_display }}
+          <a href="{% url 'order_list' %}">查看订单</a>
+        </div>
+      {% endif %}
+
+      <!-- 消息流 -->
+      <div class="im-scroll" id="chatScroll">
+        <div class="im-intro">你和 {{ other.username }} 关于「{{ product.title }}」的私聊 · 聊妥了点上方「购买」下单</div>
+
+        {% for item in chat_items %}
+          {% if item.show_time %}<div class="im-sep">{{ item.time_label }}</div>{% endif %}
+          <div class="im-row {% if item.msg.sender_id == user.id %}is-mine{% endif %}" data-id="{{ item.msg.pk }}">
+            <span class="im-ava sm">
+              {% if item.msg.sender_id == user.id %}
+                {% if user.avatar %}<img src="{{ user.avatar.url }}" alt="">{% else %}{{ user.username|first }}{% endif %}
+              {% else %}
+                {% if item.msg.sender.avatar %}<img src="{{ item.msg.sender.avatar.url }}" alt="">{% else %}{{ item.msg.sender.username|first }}{% endif %}
+              {% endif %}
+            </span>
+            <div class="im-bubble">{{ item.msg.body }}</div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- 输入区 -->
+      <form class="im-input" id="chatForm" method="post" action="{% url 'chat_send' active.pk %}">
+        {% csrf_token %}
+        <textarea id="chatBody" name="body" rows="1" maxlength="300"
+                  placeholder="说点什么…（Enter 发送，Shift+Enter 换行）" autocomplete="off"></textarea>
+        <button class="btn btn-brand" type="submit">发送</button>
+      </form>
+    {% else %}
+      <div class="im-empty">
+        <div class="im-empty-art"><i class="bi bi-chat-square-text"></i></div>
+        <p class="im-empty-title">选择一个会话开始聊天</p>
+        <p class="im-empty-sub">左边是你在不同商品下和不同同学的全部对话</p>
+        <a href="{% url 'home' %}" class="btn btn-brand px-4">去集市逛逛</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+<style>
+  /* ===== 全屏应用式布局：隐藏站点头尾，占满视口 ===== */
+  .chat-app .navbar-main,
+  .chat-app .site-footer { display: none !important; }
+  .chat-app .page-wrap {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .chat-app main { display: block; }
+  .chat-app .container-messages { display: none; }
+
+  .im {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    width: 100%;
+    background: #fff;
+    border-top: 1px solid #e9ecf1;
+  }
+
+  /* ---------- 左栏 ---------- */
+  .im-side {
+    width: 328px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    background: #f7f8fa;
+    border-right: 1px solid #e9ecf1;
+  }
+  .im-side-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px;
+  }
+  .im-brand {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 16px; font-weight: 700; color: #0a2540; text-decoration: none;
+    letter-spacing: .02em;
+  }
+  .im-back-site { font-size: 12.5px; color: #8a919c; text-decoration: none; }
+  .im-back-site:hover { color: var(--brand); }
+
+  .im-search-wrap {
+    position: relative;
+    padding: 0 16px 12px;
+  }
+  .im-search-wrap i {
+    position: absolute; left: 28px; top: 50%; transform: translateY(-60%);
+    font-size: 13px; color: #a8b0bd;
+  }
+  .im-search {
+    width: 100%; height: 34px;
+    border: 1px solid #e4e8ef;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 10px 0 30px;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .im-search:focus { border-color: #a9c9ff; box-shadow: 0 0 0 3px rgba(22,119,255,.08); }
+
+  .im-convs { flex: 1; overflow-y: auto; padding: 0 8px 12px; }
+  .im-conv {
+    position: relative;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 10px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background-color .16s ease;
+  }
+  .im-conv:hover { background: #eef2f7; }
+  .im-conv.is-active { background: #e6f0ff; }
+  .im-conv.is-unread .im-conv-last { color: #4a5058; }
+
+  .im-ava {
+    width: 40px; height: 40px; flex: none;
+    border-radius: 50%;
+    overflow: hidden;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #a9c9ff, #1677ff);
+    color: #fff; font-size: 15px; font-weight: 700;
+    user-select: none;
+  }
+  .im-ava img { width: 100%; height: 100%; object-fit: cover; }
+  .im-ava.sm { width: 34px; height: 34px; font-size: 13px; }
+
+  .im-conv-main { flex: 1; min-width: 0; }
+  .im-conv-top { display: flex; align-items: baseline; gap: 8px; }
+  .im-name {
+    font-size: 13.5px; font-weight: 600; color: #16202e;
+    max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .im-time { margin-left: auto; font-size: 11px; color: #a8b0bd; flex: none; }
+  .im-conv-prod {
+    font-size: 11.5px; color: #8a919c; margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .im-conv-last {
+    font-size: 12.5px; color: #9aa1ac; margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .im-badge {
+    position: absolute; right: 8px; bottom: 12px;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    border-radius: 999px; background: #ff4d4f; color: #fff;
+    font-size: 11px; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .im-side-empty { text-align: center; padding: 48px 18px; color: #8a919c; font-size: 12.5px; }
+  .im-side-empty-ico { font-size: 30px; color: #c3cedd; margin-bottom: 10px; }
+
+  /* ---------- 右栏 ---------- */
+  .im-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: #f2f4f7;
+  }
+  .im-head {
+    flex: none;
+    display: flex; align-items: center; gap: 10px;
+    height: 56px; padding: 0 18px;
+    background: #fff;
+    border-bottom: 1px solid #e9ecf1;
+  }
+  .im-back { display: none; color: #4a5058; font-size: 18px; text-decoration: none; line-height: 1; }
+  .im-head-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .im-head-title strong {
+    font-size: 15px; font-weight: 700; color: #16202e;
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .im-role {
+    font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px;
+    background: #eaf2ff; color: #1677ff;
+  }
+  .im-role.is-buyer { background: #f2f4f7; color: #6b7280; }
+  .im-head-link {
+    margin-left: auto; font-size: 12.5px; color: #8a919c; text-decoration: none;
+  }
+  .im-head-link:hover { color: var(--brand); }
+
+  .im-product {
+    flex: none;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 18px;
+    background: #fff;
+    border-bottom: 1px solid #e9ecf1;
+  }
+  .im-product-thumb {
+    width: 56px; height: 44px; flex: none;
+    border-radius: 8px; overflow: hidden;
+    background: linear-gradient(135deg, #eef6ff, #e2efff);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    text-decoration: none;
+  }
+  .im-product-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .im-product-main { flex: 1; min-width: 0; }
+  .im-product-title {
+    display: block; font-size: 13.5px; font-weight: 600; color: #16202e; text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .im-product-title:hover { color: var(--brand); }
+  .im-product-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+  .im-price { font-size: 15px; font-weight: 700; color: #d4380d; }
+  .im-price .price-symbol { font-size: 11px; }
+  .im-tag {
+    font-size: 11px; color: #6b7280; background: #f2f4f7;
+    padding: 1px 6px; border-radius: 4px;
+  }
+  .im-ship { font-size: 11.5px; color: #9aa1ac; }
+  .im-product-action { flex: none; }
+  .im-btn-off { background: #eef2f7; color: #8fa3bd; border: none; cursor: default; }
+
+  .im-order-tip {
+    flex: none;
+    padding: 8px 18px;
+    background: #fff9ea;
+    border-bottom: 1px solid #ffeccc;
+    font-size: 12.5px;
+    color: #8a5b00;
+  }
+  .im-order-tip a { color: var(--brand); text-decoration: none; margin-left: 4px; }
+
+  .im-scroll { flex: 1; overflow-y: auto; padding: 18px 20px 8px; }
+  .im-intro {
+    max-width: 520px; margin: 0 auto 18px;
+    text-align: center; font-size: 11.5px; color: #9aa1ac;
+    line-height: 1.7;
+  }
+  .im-sep { text-align: center; font-size: 11px; color: #a8b0bd; margin: 14px 0 12px; }
+
+  .im-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
+  .im-row.is-mine { flex-direction: row-reverse; }
+  .im-bubble {
+    max-width: min(64%, 460px);
+    background: #fff;
+    border-radius: 10px;
+    padding: 9px 13px;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #16202e;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(16,24,40,.05);
+  }
+  .im-row.is-mine .im-bubble { background: #1677ff; color: #fff; }
+
+  .im-input {
+    flex: none;
+    display: flex; align-items: flex-end; gap: 10px;
+    padding: 12px 18px 14px;
+    background: #fff;
+    border-top: 1px solid #e9ecf1;
+  }
+  .im-input textarea {
+    flex: 1;
+    resize: none;
+    max-height: 96px;
+    border: 1px solid #e4e8ef;
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .im-input textarea:focus { border-color: #a9c9ff; box-shadow: 0 0 0 3px rgba(22,119,255,.08); }
+  .im-input .btn { height: 38px; padding: 0 22px; border-radius: 10px; font-weight: 600; flex: none; }
+
+  .im-empty {
+    margin: auto; text-align: center; padding: 40px 24px; color: #8a919c;
+  }
+  .im-empty-art {
+    width: 78px; height: 78px; margin: 0 auto 18px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; color: #c3cedd;
+    box-shadow: 0 2px 10px rgba(16,24,40,.05);
+  }
+  .im-empty-title { font-size: 15px; font-weight: 600; color: #4a5058; margin: 0 0 6px; }
+  .im-empty-sub { font-size: 12.5px; margin: 0 0 18px; }
+
+  /* ---------- 移动端：列表 / 对话 二选一全屏 ---------- */
+  @media (max-width: 767.98px) {
+    .im-side { width: 100%; border-right: none; }
+    .im.has-active .im-side { display: none; }
+    .im:not(.has-active) .im-main { display: none; }
+    .im-back { display: inline-flex; align-items: center; }
+    .im-head { height: 52px; padding: 0 12px; }
+    .im-product { padding: 8px 12px; }
+    .im-scroll { padding: 14px 12px 6px; }
+    .im-bubble { max-width: 76%; }
+    .im-input { padding: 10px 12px 12px; gap: 8px; }
+    .im-input .btn { padding: 0 16px; }
+    .im-ship { display: none; }
+    .im-intro { font-size: 11px; }
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{% if active %}
+<script>
+(function () {
+  const list = document.getElementById('chatList') || null;
+  const scroll = document.getElementById('chatScroll');
+  const form = document.getElementById('chatForm');
+  const input = document.getElementById('chatBody');
+  const sendUrl = "{% url 'chat_send' active.pk %}";
+  const pollUrl = "{% url 'chat_poll' active.pk %}";
+  const csrf = form.querySelector('input[name=csrfmiddlewaretoken]').value;
+  const ME = {{ user.id }};
+  let lastId = {{ last_id }};
+  let sending = false;
+
+  function toBottom() { scroll.scrollTop = scroll.scrollHeight; }
+
+  // 输入框随内容长高，最多 96px
+  function autoGrow() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 96) + 'px';
+  }
+  input.addEventListener('input', autoGrow);
+
+  function appendMessage(m) {
+    const row = document.createElement('div');
+    row.className = 'im-row' + (m.mine ? ' is-mine' : '');
+    row.dataset.id = m.id;
+
+    const ava = document.createElement('span');
+    ava.className = 'im-ava sm';
+    ava.textContent = (m.sender || '?').slice(0, 1);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'im-bubble';
+    bubble.textContent = m.body;          // textContent：天然防 XSS
+
+    row.appendChild(ava);
+    row.appendChild(bubble);
+    scroll.appendChild(row);
+    lastId = Math.max(lastId, m.id);
+  }
+
+  toBottom();
+  input.focus();
+
+  // Enter 发送 / Shift+Enter 换行
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (sending) return;
+    const body = input.value.trim();
+    if (!body) { input.focus(); return; }
+    sending = true;
+    try {
+      const resp = await fetch(sendUrl, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf},
+        body: new URLSearchParams({body: body})
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        input.value = '';
+        autoGrow();
+        appendMessage(data.message);
+        toBottom();
+      } else {
+        alert(data.error || '发送失败，请重试');
+      }
+    } catch (err) {
+      alert('网络不太稳定，再点一次发送试试');
+    }
+    sending = false;
+    input.focus();
+  });
+
+  // 轮询：对方发来的消息 3 秒内出现
+  async function poll() {
+    try {
+      const resp = await fetch(pollUrl + '?after=' + lastId, {
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+      });
+      const data = await resp.json();
+      if (data.messages && data.messages.length) {
+        data.messages.forEach(function (m) {
+          if (!scroll.querySelector('[data-id="' + m.id + '"]')) appendMessage(m);
+        });
+        toBottom();
+      }
+    } catch (err) { /* 网络抖动忽略，下一轮继续 */ }
+  }
+  setInterval(poll, 3000);
+})();
+</script>
+{% endif %}
+
+<script>
+(function () {
+  // 左侧会话搜索：按同学昵称或商品标题过滤
+  const box = document.getElementById('imSearch');
+  if (!box) return;
+  box.addEventListener('input', function () {
+    const q = box.value.trim().toLowerCase();
+    document.querySelectorAll('#imConvs .im-conv').forEach(function (el) {
+      const text = (el.dataset.text || '').toLowerCase();
+      el.style.display = !q || text.indexOf(q) !== -1 ? '' : 'none';
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -391,7 +391,7 @@
     .alert { border-radius: var(--r); font-size: 13.5px; }
   </style>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 <!-- 背景：极轻的柔光漂移 -->
 <div class="bg-decor" aria-hidden="true">
   <i class="d1"></i><i class="d2"></i><i class="d3"></i>

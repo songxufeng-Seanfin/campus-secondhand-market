@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count, F, Prefetch, Q
+from django.db.models import Count, F, OuterRef, Prefetch, Q, Subquery
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -219,16 +219,54 @@ def chat_start(request, pk):
     return redirect("chat_detail", pk=conv.pk)
 
 
+def _conversation_sidebar(user):
+    """左侧会话列表：每个会话带上未读数、最后一条消息和最近活跃时间。
+
+    用 Subquery 取最后一条消息，避免「每个会话再查一次」的 N+1。
+    """
+    last = ChatMessage.objects.filter(conversation=OuterRef("pk")).order_by("-created_at")
+    return (
+        Conversation.objects.filter(Q(buyer=user) | Q(seller=user))
+        .select_related("product", "product__category", "product__seller", "buyer", "seller")
+        .annotate(
+            unread=Count(
+                "chat_messages",
+                filter=Q(chat_messages__is_read=False) & ~Q(chat_messages__sender=user),
+            ),
+            last_body=Subquery(last.values("body")[:1]),
+            last_at=Subquery(last.values("created_at")[:1]),
+        )
+        .order_by("-updated_at")
+    )
+
+
 @login_required
 def chat_detail(request, pk):
-    """会话页：顶部商品 Banner + 聊天区。打开即把对方消息标为已读。"""
+    """会话页：左列表 + 右聊天窗（微信式）。打开即把对方消息标为已读。"""
     conv = _conversation_or_404(pk, request.user)
 
     # 进入会话就算读过了，导航红点随之消失
     conv.chat_messages.exclude(sender=request.user).filter(is_read=False).update(is_read=True)
 
-    chat_messages = conv.chat_messages.select_related("sender")
-    last_id = chat_messages.last().pk if chat_messages else 0
+    chat_messages = list(conv.chat_messages.select_related("sender"))
+    last_id = chat_messages[-1].pk if chat_messages else 0
+
+    # 相邻消息超过 10 分钟才显示一次时间分隔，模仿微信的呼吸感
+    chat_items = []
+    prev_at = None
+    for msg in chat_messages:
+        local = timezone.localtime(msg.created_at)
+        gap = None if prev_at is None else (local - prev_at).total_seconds()
+        chat_items.append(
+            {
+                "msg": msg,
+                "show_time": gap is None or gap > 600,
+                "time_label": local.strftime("%H:%M")
+                if local.date() == timezone.localdate()
+                else local.strftime("%m-%d %H:%M"),
+            }
+        )
+        prev_at = local
 
     # 买家已经下过单就把进度带出来，避免重复下单
     my_order = (
@@ -237,11 +275,13 @@ def chat_detail(request, pk):
 
     return render(
         request,
-        "chat.html",
+        "chat_center.html",
         {
-            "conversation": conv,
+            "conversations": _conversation_sidebar(request.user),
+            "active": conv,
             "other": conv.other_party(request.user),
             "chat_messages": chat_messages,
+            "chat_items": chat_items,
             "last_id": last_id,
             "my_order": my_order,
             "product": conv.product,
@@ -299,18 +339,15 @@ def chat_poll(request, pk):
 
 @login_required
 def chat_list(request):
-    """消息中心：我参与的全部会话，带未读数。"""
-    conversations = (
-        Conversation.objects.filter(Q(buyer=request.user) | Q(seller=request.user))
-        .select_related("product", "product__category", "buyer", "seller")
-        .annotate(
-            unread=Count(
-                "chat_messages",
-                filter=Q(chat_messages__is_read=False) & ~Q(chat_messages__sender=request.user),
-            )
-        )
+    """消息中心：左侧会话列表，右侧提示选一个会话（桌面端双栏）。"""
+    return render(
+        request,
+        "chat_center.html",
+        {
+            "conversations": _conversation_sidebar(request.user),
+            "active": None,
+        },
     )
-    return render(request, "chat_list.html", {"conversations": conversations})
 
 
 # ============================ 订单 ============================
