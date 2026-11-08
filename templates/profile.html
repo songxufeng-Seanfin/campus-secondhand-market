@@ -27,15 +27,77 @@
   </div>
 </div>
 
-<div class="card-soft">
-  <div class="card-body d-flex align-items-center justify-content-between">
-    <div>
-      <div class="profile-name" style="font-size:15px;">我发布的闲置</div>
-      <p class="section-sub mb-0">在售、已售出、已下架的商品都能在这里管理</p>
-    </div>
-    <a href="{% url 'my_products' %}" class="btn btn-ghost btn-sm px-3">进入管理</a>
+<div class="row g-3">
+  <div class="col-md-4">
+    <a href="{% url 'my_products' %}" class="entry-card">
+      <span class="entry-icon">📦</span>
+      <div class="entry-main">
+        <div class="entry-title">我发布的闲置</div>
+        <div class="entry-sub">{{ product_count }} 件 · 管理上下架</div>
+      </div>
+      <i class="bi bi-chevron-right entry-arrow"></i>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'order_list' %}" class="entry-card">
+      <span class="entry-icon">🧾</span>
+      <div class="entry-main">
+        <div class="entry-title">
+          我的订单
+          {% if pending_count %}<span class="entry-badge">{{ pending_count }} 待确认</span>{% endif %}
+        </div>
+        <div class="entry-sub">买到 {{ bought_count }} · 卖出 {{ sold_count }}</div>
+      </div>
+      <i class="bi bi-chevron-right entry-arrow"></i>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'favorites' %}" class="entry-card">
+      <span class="entry-icon">💙</span>
+      <div class="entry-main">
+        <div class="entry-title">我的收藏</div>
+        <div class="entry-sub">{{ favorite_count }} 件好物收着</div>
+      </div>
+      <i class="bi bi-chevron-right entry-arrow"></i>
+    </a>
   </div>
 </div>
+
+<style>
+  .entry-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 16px 18px;
+    text-decoration: none;
+    box-shadow: var(--shadow-1);
+    transition: box-shadow .2s ease, transform .2s ease;
+  }
+  .entry-card:hover { box-shadow: var(--shadow-2); transform: translateY(-2px); }
+  .entry-icon {
+    width: 40px; height: 40px; flex: none;
+    border-radius: 12px;
+    background: var(--brand-light);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 19px;
+  }
+  .entry-main { min-width: 0; }
+  .entry-title {
+    font-size: 14px; font-weight: 600; color: #0a2540;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .entry-badge {
+    font-size: 10.5px; font-weight: 600;
+    padding: 1px 7px; border-radius: 999px;
+    background: #fff7e6; color: #b26a00;
+  }
+  .entry-sub { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+  .entry-arrow { margin-left: auto; color: #c9d8ee; font-size: 13px; }
+</style>
 
 <style>
   .profile-head { display: flex; align-items: center; gap: 16px; padding: 26px 26px 20px; }

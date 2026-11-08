@@ -19,7 +19,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from accounts.models import User
-from goods.models import Category, Product
+from goods.models import Category, Favorite, Order, Product, ProductMessage
 
 # 商品 → 演示实拍图（放在 goods/seed_images/ 下，1120x840 的 4:3 图片）
 IMAGE_MAP = {
@@ -174,7 +174,7 @@ def _make_cover(title: str, slug: str) -> ContentFile:
 
 
 class Command(BaseCommand):
-    help = "生成演示数据：6 个分类 + 3 个演示用户 + 8 件带封面的商品"
+    help = "生成演示数据：6 个分类 + 4 个演示用户 + 8 件带封面的商品 + 订单/留言/收藏"
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -227,8 +227,61 @@ class Command(BaseCommand):
             product.save()
             created_count += 1
 
+        # 4. 交易演示：一个买家 + 两笔进行中的订单 + 几条留言 + 收藏
+        buyer, created = User.objects.get_or_create(
+            username="考研失败选手", defaults={"phone": "13800000004"}
+        )
+        if created:
+            buyer.set_password(DEMO_PASSWORD)
+            buyer.save()
+
+        demo_orders = [
+            ("高等数学 同济第七版 上下册", "accepted", "明天下午三点图书馆门口方便吗？"),
+            ("斯伯丁 7 号篮球", "pending", "球还在吗？能不能便宜五块"),
+        ]
+        order_count = 0
+        for title, status, note in demo_orders:
+            product = Product.objects.filter(title=title).first()
+            if not product or Order.objects.filter(product=product, buyer=buyer).exists():
+                continue
+            Order.objects.create(
+                product=product,
+                buyer=buyer,
+                seller=product.seller,
+                price=product.price,
+                message=note,
+                status=status,
+            )
+            order_count += 1
+
+        demo_messages = [
+            ("高等数学 同济第七版 上下册", "里面的习题册是全新没写过的吗？", buyer),
+            ("高等数学 同济第七版 上下册", "习题册写了两章，其余都是空白的，可以拍照给你看", "seller"),
+            ("iPad Air 4 64G 深空灰", "电池健康多少呀？", buyer),
+            ("斯伯丁 7 号篮球", "这个球平时打室内还是室外场？", buyer),
+        ]
+        message_count = 0
+        for title, body, who in demo_messages:
+            product = Product.objects.filter(title=title).first()
+            if not product:
+                continue
+            author = product.seller if who == "seller" else buyer
+            if ProductMessage.objects.filter(product=product, author=author, body=body).exists():
+                continue
+            ProductMessage.objects.create(product=product, author=author, body=body)
+            message_count += 1
+
+        favorite_count = 0
+        for title in ["iPad Air 4 64G 深空灰", "雅马哈 F310 民谣吉他"]:
+            product = Product.objects.filter(title=title).first()
+            if product:
+                _, created_fav = Favorite.objects.get_or_create(user=buyer, product=product)
+                favorite_count += int(created_fav)
+
         self.stdout.write(
             self.style.SUCCESS(
-                f"完成：新增 {created_count} 件商品，当前商品总数 {Product.objects.count()}"
+                f"完成：新增 {created_count} 件商品、{order_count} 笔订单、"
+                f"{message_count} 条留言、{favorite_count} 个收藏；"
+                f"当前商品总数 {Product.objects.count()}"
             )
         )

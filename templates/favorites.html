@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}我的收藏 - 闲小集{% endblock %}
+{% block content %}
+
+<div class="page-head mb-4">
+  <h1>我的收藏</h1>
+  <p>先收着，等钱包和宿舍都准备好了再下手。</p>
+</div>
+
+{% if favorites %}
+  <div class="row g-3 mb-4">
+    {% for fav in favorites %}
+      <div class="col-6 col-md-4">
+        <div class="fav-wrap">
+          <a href="{% url 'product_detail' fav.product.pk %}" class="text-decoration-none">
+            <div class="card card-soft h-100 product-card">
+              <div class="product-thumb">
+                {% if fav.product.image %}
+                  <img src="{{ fav.product.image.url }}" alt="{{ fav.product.title }}" loading="lazy">
+                {% else %}
+                  <div class="thumb-placeholder">{{ fav.product.category.icon }}</div>
+                {% endif %}
+                {% if fav.product.is_sold %}
+                  <span class="sold-mask">已售出</span>
+                {% elif fav.product.is_reserved %}
+                  <span class="sold-mask is-reserved">已预订</span>
+                {% endif %}
+              </div>
+              <div class="card-body p-3">
+                <div class="product-title">{{ fav.product.title }}</div>
+                <div class="d-flex align-items-end justify-content-between mt-2">
+                  <div>
+                    <span class="price-symbol">¥</span><span class="price">{{ fav.product.price|floatformat:"-2" }}</span>
+                  </div>
+                  <span class="condition-tag">{{ fav.product.get_condition_display }}</span>
+                </div>
+              </div>
+            </div>
+          </a>
+          <form method="post" action="{% url 'favorite_toggle' fav.product.pk %}" class="fav-remove">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'favorites' %}">
+            <button class="btn btn-sm btn-light" title="取消收藏"><i class="bi bi-heart-fill"></i></button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card card-soft mb-4">
+    <div class="card-body text-center py-5">
+      <div style="font-size:44px;">💙</div>
+      <p class="mt-3 mb-1 fw-bold" style="color:#0a2540;">收藏夹还是空的</p>
+      <p class="small text-muted mb-3">逛集市时点一下心形按钮，好物就会收在这里</p>
+      <a href="{% url 'home' %}" class="btn btn-brand px-4">去逛集市</a>
+    </div>
+  </div>
+{% endif %}
+
+<style>
+  .page-head h1 { font-size: 24px; font-weight: 800; color: #0a2540; margin: 0 0 6px; letter-spacing: .3px; }
+  .page-head p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+
+  .fav-wrap { position: relative; height: 100%; }
+  .fav-remove { position: absolute; top: 8px; right: 8px; margin: 0; }
+  .fav-remove .btn {
+    width: 30px; height: 30px;
+    padding: 0;
+    border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #ff4d6d;
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 2px 8px rgba(22, 119, 255, .18);
+    font-size: 13px;
+  }
+  .fav-remove .btn:hover { background: #fff; color: #d4380d; }
+
+  .sold-mask {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 37, 64, .45);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .sold-mask.is-reserved { background: rgba(10, 37, 64, .32); font-size: 13px; }
+</style>
+{% endblock %}

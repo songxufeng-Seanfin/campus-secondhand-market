@@ -21,5 +21,14 @@ def register(request):
 
 @login_required
 def profile(request):
-    """个人中心：展示当前用户信息。"""
-    return render(request, "profile.html")
+    """个人中心：用户信息 + 各模块入口的计数。"""
+    from goods.models import Favorite, Order, Product
+
+    context = {
+        "product_count": Product.objects.filter(seller=request.user).count(),
+        "bought_count": Order.objects.filter(buyer=request.user).count(),
+        "sold_count": Order.objects.filter(seller=request.user).count(),
+        "pending_count": Order.objects.filter(seller=request.user, status="pending").count(),
+        "favorite_count": Favorite.objects.filter(user=request.user).count(),
+    }
+    return render(request, "profile.html", context)

@@ -147,6 +147,7 @@
               {% else %}
                 <div class="thumb-placeholder">{{ product.category.icon }}</div>
               {% endif %}
+              {% if product.is_reserved %}<span class="reserved-badge">已预订</span>{% endif %}
             </div>
             <div class="card-body p-3">
               <div class="product-title">{{ product.title }}</div>
@@ -380,8 +381,7 @@
   }
 
   /* ---------- 数据条 ---------- */
-  .stats-bar { border: 1px solid rgba(22, 119, 255, .10); }
-  .stat-num {
+  .stats-bar { border: 1px solid rgba(22, 119, 255, .10); }  .stat-num {
     font-size: 26px;
     font-weight: 800;
     color: var(--brand);
@@ -390,6 +390,20 @@
   .stat-unit { font-size: 14px; font-weight: 700; margin-left: 2px; }
   .stat-label { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
   .stat-divider { width: 1px; background: var(--line); }
+
+  /* ---------- 已预订角标 ---------- */
+  .reserved-badge {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .94);
+    color: #b26a00;
+    box-shadow: 0 2px 8px rgba(22, 119, 255, .16);
+  }
 
   /* ---------- 分页 ---------- */
   .pagination .page-link {

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}我的订单 - 闲小集{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>我的订单</h1>
+  <p>下单后等卖家确认，约好时间地点当面交易或邮寄，完成后再确认收货。</p>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a href="?tab=bought" class="cat-chip {% if tab == 'bought' %}active{% endif %}">
+    🛍 我买到的 <span class="chip-count">{{ bought_count }}</span>
+  </a>
+  <a href="?tab=sold" class="cat-chip {% if tab == 'sold' %}active{% endif %}">
+    📦 我卖出的 <span class="chip-count">{{ sold_count }}</span>
+  </a>
+</div>
+
+{% if orders %}
+  <div class="d-flex flex-column gap-3 mb-4">
+    {% for order in orders %}
+      <div class="order-card">
+        <a href="{% url 'product_detail' order.product.pk %}" class="order-thumb">
+          {% if order.product.image %}
+            <img src="{{ order.product.image.url }}" alt="{{ order.product.title }}">
+          {% else %}
+            <span class="order-thumb-emoji">{{ order.product.category.icon }}</span>
+          {% endif %}
+        </a>
+
+        <div class="order-main">
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <a href="{% url 'product_detail' order.product.pk %}" class="order-title">{{ order.product.title }}</a>
+            <span class="status-pill {{ order.status_style }}">{{ order.get_status_display }}</span>
+          </div>
+          <div class="order-meta">
+            订单号 #{{ order.id }} · {{ order.created_at|date:"Y-m-d H:i" }}
+            {% if tab == 'bought' %}· 卖家 {{ order.seller.username }}{% else %}· 买家 {{ order.buyer.username }}{% endif %}
+          </div>
+          {% if order.message %}
+            <div class="order-note"><i class="bi bi-chat-left-text me-1"></i>{{ order.message }}</div>
+          {% endif %}
+        </div>
+
+        <div class="order-side">
+          <div class="order-price"><span class="price-symbol">¥</span><span class="price">{{ order.price|floatformat:"-2" }}</span></div>
+
+          <div class="order-actions">
+            {% if tab == 'sold' and order.status == 'pending' %}
+              <form method="post" action="{% url 'order_action' order.pk 'accept' %}">
+                {% csrf_token %}
+                <button class="btn btn-brand btn-sm px-3">确认订单</button>
+              </form>
+              <form method="post" action="{% url 'order_action' order.pk 'reject' %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-secondary btn-sm px-3">拒绝</button>
+              </form>
+            {% elif tab == 'sold' and order.status == 'accepted' %}
+              <form method="post" action="{% url 'order_action' order.pk 'complete' %}">
+                {% csrf_token %}
+                <button class="btn btn-brand btn-sm px-3">标记完成</button>
+              </form>
+            {% elif tab == 'bought' and order.is_active %}
+              <form method="post" action="{% url 'order_action' order.pk 'complete' %}">
+                {% csrf_token %}
+                <button class="btn {% if order.status == 'accepted' %}btn-brand{% else %}btn-outline-secondary{% endif %} btn-sm px-3"
+                        {% if order.status != 'accepted' %}disabled title="等卖家确认后才能确认收货"{% endif %}>
+                  确认收货
+                </button>
+              </form>
+              <form method="post" action="{% url 'order_action' order.pk 'cancel' %}">
+                {% csrf_token %}
+                <button class="btn btn-link btn-sm p-0 text-decoration-none order-cancel">取消订单</button>
+              </form>
+            {% else %}
+              <span class="order-done">
+                {% if order.status == 'completed' %}🤝 交易已完成{% elif order.status == 'rejected' %}卖家拒绝了这笔订单{% elif order.status == 'cancelled' %}订单已关闭{% endif %}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card card-soft mb-4">
+    <div class="card-body text-center py-5">
+      <div style="font-size:44px;">🧾</div>
+      <p class="mt-3 mb-1 fw-bold" style="color:#0a2540;">还没有订单</p>
+      <p class="small text-muted mb-3">
+        {% if tab == 'sold' %}等有人看上你的闲置，订单会出现在这里{% else %}去集市逛逛，看到心动的好物就下单吧{% endif %}
+      </p>
+      <a href="{% url 'home' %}" class="btn btn-brand px-4">去逛集市</a>
+    </div>
+  </div>
+{% endif %}
+
+<style>
+  .page-head { margin-bottom: 20px; }
+  .page-head h1 { font-size: 24px; font-weight: 800; color: #0a2540; margin: 0 0 6px; letter-spacing: .3px; }
+  .page-head p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+
+  .chip-count {
+    display: inline-block;
+    min-width: 20px;
+    margin-left: 4px;
+    padding: 0 6px;
+    font-size: 12px;
+    border-radius: 999px;
+    background: rgba(22, 119, 255, .12);
+    color: var(--brand-dark);
+  }
+  .cat-chip.active .chip-count { background: rgba(255, 255, 255, .28); color: #fff; }
+
+  .order-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 14px 18px;
+    box-shadow: var(--shadow-1);
+    transition: box-shadow .2s ease;
+  }
+  .order-card:hover { box-shadow: var(--shadow-2); }
+
+  .order-thumb {
+    width: 88px;
+    height: 66px;
+    flex: none;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #eef6ff, #e2efff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+  .order-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .order-thumb-emoji { font-size: 26px; }
+
+  .order-main { flex: 1; min-width: 0; }
+  .order-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0a2540;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .order-title:hover { color: var(--brand); }
+  .order-meta { font-size: 12.5px; color: var(--text-3); }
+  .order-note {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-2);
+    background: var(--brand-light);
+    border-radius: 10px;
+    padding: 5px 10px;
+    display: inline-block;
+  }
+
+  .status-pill {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .status-pill.is-pending { background: #fff7e6; color: #b26a00; }
+  .status-pill.is-accepted { background: var(--brand-light); color: var(--brand-dark); }
+  .status-pill.is-completed { background: #eafaf0; color: #15803d; }
+  .status-pill.is-closed { background: #f2f4f7; color: #8a919c; }
+
+  .order-side {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 150px;
+  }
+  .order-price .price { font-size: 18px; }
+  .order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .order-actions form { margin: 0; }
+  .order-cancel { color: var(--text-3); font-size: 12.5px; }
+  .order-cancel:hover { color: #d4380d; }
+  .order-done { font-size: 12.5px; color: var(--text-3); }
+
+  @media (max-width: 575.98px) {
+    .order-card { flex-wrap: wrap; }
+    .order-side { width: 100%; align-items: flex-start; }
+    .order-actions { justify-content: flex-start; }
+  }
+</style>
+{% endblock %}

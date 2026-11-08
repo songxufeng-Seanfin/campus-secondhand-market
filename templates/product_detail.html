@@ -3,10 +3,8 @@
 {% block title %}{{ product.title }} - 闲小集{% endblock %}
 {% block content %}
 
-<div class="mb-4">
-  <a href="{% url 'home' %}" class="back-link">
-    <i class="bi bi-arrow-left"></i>返回集市
-  </a>
+<div class="mb-3">
+  <a href="{% url 'home' %}" class="back-link"><i class="bi bi-arrow-left"></i>返回集市</a>
 </div>
 
 <div class="row g-4 mb-4">
@@ -15,19 +13,26 @@
       {% if product.image %}
         <img src="{{ product.image.url }}" alt="{{ product.title }}">
       {% else %}
-        <div class="detail-placeholder"><i class="bi {{ product.category.slug|cat_icon }}"></i></div>
+        <div class="detail-placeholder">{{ product.category.icon }}</div>
+      {% endif %}
+      {% if product.is_sold %}
+        <span class="image-mask">已售出</span>
+      {% elif product.is_reserved %}
+        <span class="image-mask is-reserved">已预订</span>
       {% endif %}
     </div>
   </div>
 
   <div class="col-lg-5">
     <div class="detail-panel">
-      <div class="d-flex align-items-center gap-2 mb-3">
+      <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
         <span class="condition-tag">{{ product.get_condition_display }}</span>
         <a href="{% url 'home' %}?category={{ product.category.slug }}" class="category-link">
-          <i class="bi {{ product.category.slug|cat_icon }}"></i>{{ product.category.name }}
+          {{ product.category.icon }} {{ product.category.name }}
         </a>
-        {% if product.is_sold %}<span class="condition-tag" style="background:#f2f4f7;color:#8a919c;">已售出</span>{% endif %}
+        <span class="status-pill {% if product.is_sold %}is-closed{% elif product.is_reserved %}is-accepted{% else %}is-on{% endif %}">
+          {{ product.status_label }}
+        </span>
       </div>
 
       <h1 class="detail-title">{{ product.title }}</h1>
@@ -39,40 +44,129 @@
         {% endif %}
       </div>
 
+      <div class="seller-row">
+        <span class="seller-avatar">{{ product.seller.username|first }}</span>
+        <div>
+          <div class="seller-name">{{ product.seller.username }}</div>
+          <div class="seller-sub">发布于 {{ product.created_at|date:"Y-m-d" }}</div>
+        </div>
+        <div class="ms-auto seller-stats">
+          <span><i class="bi bi-eye"></i>{{ product.views }}</span>
+          <span><i class="bi bi-heart"></i>{{ favorite_count }}</span>
+        </div>
+      </div>
+
       <dl class="detail-meta">
-        <div class="meta-row"><dt>卖家</dt><dd>{{ product.seller.username }}</dd></div>
         {% if product.location %}
           <div class="meta-row"><dt>交易地点</dt><dd>{{ product.location }}</dd></div>
         {% endif %}
+        <div class="meta-row"><dt>交易方式</dt><dd>面交 / 邮寄，和卖家商量</dd></div>
         <div class="meta-row"><dt>发布时间</dt><dd>{{ product.created_at|date:"Y-m-d H:i" }}</dd></div>
-        <div class="meta-row"><dt>浏览</dt><dd>{{ product.views }} 次</dd></div>
       </dl>
 
       {% if user.is_authenticated %}
         {% if user == product.seller %}
           <div class="d-flex gap-2 mt-4">
             <a href="{% url 'product_edit' product.pk %}" class="btn btn-brand flex-fill py-2">编辑</a>
-            <a href="{% url 'product_delete' product.pk %}" class="btn btn-ghost flex-fill py-2">删除</a>
+            <a href="{% url 'product_delete' product.pk %}" class="btn btn-outline-secondary flex-fill py-2">删除</a>
           </div>
+          <p class="section-sub text-center mt-2 mb-0">这是你发布的闲置，可在「我的闲置」查看订单</p>
+
+        {% elif my_order and my_order.is_active %}
+          <div class="order-hint">
+            <div class="order-hint-title">
+              <i class="bi bi-clock-history"></i>{{ my_order.get_status_display }}
+            </div>
+            <p class="mb-2">订单号 #{{ my_order.id }}，卖家确认后记得约时间地点。</p>
+            <a href="{% url 'order_list' %}" class="btn btn-brand btn-sm px-3">查看我的订单</a>
+          </div>
+
+        {% elif product.is_sold %}
+          <button class="btn btn-disabled w-100 py-2 mt-4" disabled>这件闲置已经售出</button>
+          <p class="section-sub text-center mt-2 mb-0">看看同类好物，或者发布你的闲置</p>
+
+        {% elif product.is_reserved %}
+          <button class="btn btn-disabled w-100 py-2 mt-4" disabled>已被其他同学预订</button>
+          <p class="section-sub text-center mt-2 mb-0">交易取消后会重新上架，可以先收藏</p>
+
         {% else %}
-          <button class="btn btn-brand w-100 py-2 mt-4" disabled>联系卖家</button>
-          <p class="section-sub text-center mt-2 mb-0">私信功能开发中，可先通过站内用户名联系</p>
+          <form method="post" action="{% url 'order_create' product.pk %}" class="buy-form">
+            {% csrf_token %}
+            <input type="text" name="message" maxlength="120" class="form-control"
+                   placeholder="给卖家留句话（选填）：比如“明天下午图书馆门口可以吗”">
+            <button class="btn btn-brand w-100 py-2">我想要 · 提交购买意向</button>
+          </form>
+
         {% endif %}
+
+        {% if user != product.seller %}
+          <form method="post" action="{% url 'favorite_toggle' product.pk %}" class="mt-2">
+            {% csrf_token %}
+            <button class="btn btn-fav w-100 py-2 {% if is_favorited %}is-on{% endif %}">
+              {% if is_favorited %}
+                <i class="bi bi-heart-fill me-1"></i>已收藏 · 点击取消
+              {% else %}
+                <i class="bi bi-heart me-1"></i>收藏这件好物
+              {% endif %}
+            </button>
+          </form>
+        {% endif %}
+
       {% else %}
-        <a href="{% url 'login' %}" class="btn btn-brand w-100 py-2 mt-4">登录后联系卖家</a>
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-brand w-100 py-2 mt-4">登录后联系卖家</a>
+        <a href="{% url 'register' %}" class="btn btn-fav w-100 py-2 mt-2">免费注册 · 学生专属集市</a>
       {% endif %}
     </div>
   </div>
 </div>
 
-<div class="detail-desc">
+<div class="detail-desc mb-4">
   <h2 class="detail-desc-title">宝贝描述</h2>
   <p class="detail-desc-body">{{ product.description }}</p>
 </div>
 
+<!-- 留言区 -->
+<section id="messages" class="msg-panel mb-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="detail-desc-title mb-0">留言板 <span class="msg-count">{{ product_messages|length }}</span></h2>
+    <span class="msg-tip">有问题直接问，卖家会收到</span>
+  </div>
+
+  {% if product_messages %}
+    <ul class="msg-list">
+      {% for msg in product_messages %}
+        <li class="msg-item">
+          <span class="msg-avatar">{{ msg.author.username|first }}</span>
+          <div class="msg-body">
+            <div class="msg-head">
+              <span class="msg-author">{{ msg.author.username }}</span>
+              {% if msg.is_seller %}<span class="msg-badge">卖家</span>{% endif %}
+              <span class="msg-time">{{ msg.created_at|date:"m-d H:i" }}</span>
+            </div>
+            <p class="msg-text">{{ msg.body }}</p>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="msg-empty">还没有人留言，来问第一句吧 🙋</p>
+  {% endif %}
+
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'message_create' product.pk %}" class="msg-form">
+      {% csrf_token %}
+      <input type="text" name="body" maxlength="200" class="form-control"
+             placeholder="{% if user == product.seller %}作为卖家回复一句……{% else %}问问成色、能否议价、什么时候方便交易……{% endif %}">
+      <button class="btn btn-brand px-4">发送</button>
+    </form>
+  {% else %}
+    <p class="msg-empty mb-0"><a href="{% url 'login' %}?next={{ request.path }}">登录</a> 后可以留言提问。</p>
+  {% endif %}
+</section>
+
 {% if related %}
-  <h2 class="section-title mt-5 mb-3">同类好物</h2>
-  <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3 g-md-4">
+  <h2 class="section-title mt-4 mb-3">同类好物</h2>
+  <div class="row row-cols-2 row-cols-md-3 row-cols-lg-3 g-3">
     {% for item in related %}
       <div class="col">
         <a href="{% url 'product_detail' item.pk %}" class="text-decoration-none">
@@ -81,7 +175,7 @@
               {% if item.image %}
                 <img src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy">
               {% else %}
-                <div class="thumb-placeholder"><i class="bi {{ item.category.slug|cat_icon }}"></i></div>
+                <div class="thumb-placeholder">{{ item.category.icon }}</div>
               {% endif %}
             </div>
             <div class="p-3">
@@ -99,17 +193,14 @@
 
 <style>
   .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 13px;
-    color: var(--text-3);
-    text-decoration: none;
-    transition: color .2s ease-out;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 13px; color: var(--text-3); text-decoration: none;
+    transition: color .2s ease;
   }
   .back-link:hover { color: var(--brand); }
 
   .detail-image {
+    position: relative;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: var(--r);
@@ -118,64 +209,144 @@
   .detail-image img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
   .detail-placeholder {
     aspect-ratio: 4 / 3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 56px;
-    color: #c3cedd;
-    background: var(--line-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px;
+    background: linear-gradient(135deg, #eef6ff, #e2efff);
   }
+  .image-mask {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(10, 37, 64, .45);
+    color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 2px;
+  }
+  .image-mask.is-reserved { background: rgba(10, 37, 64, .34); font-size: 16px; }
 
   .detail-panel {
     background: #fff;
     border: 1px solid var(--line);
     border-radius: var(--r);
-    padding: 28px 26px;
+    padding: 24px 24px 22px;
     height: 100%;
+    box-shadow: var(--shadow-1);
   }
   .category-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    color: var(--text-3);
-    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12.5px; color: var(--text-3); text-decoration: none;
   }
   .category-link:hover { color: var(--brand); }
+  .status-pill {
+    font-size: 11.5px; font-weight: 600;
+    padding: 2px 9px; border-radius: 999px;
+  }
+  .status-pill.is-on { background: #eafaf0; color: #15803d; }
+  .status-pill.is-accepted { background: #fff7e6; color: #b26a00; }
+  .status-pill.is-closed { background: #f2f4f7; color: #8a919c; }
 
   .detail-title {
-    font-size: 20px;
-    font-weight: 500;
-    line-height: 1.5;
-    color: var(--ink);
-    margin: 0 0 4px;
+    font-size: 21px; font-weight: 700; line-height: 1.45;
+    color: #0a2540; margin: 6px 0 2px;
   }
-  .detail-price { display: flex; align-items: baseline; gap: 6px; padding: 14px 0 20px; }
+  .detail-price { display: flex; align-items: baseline; gap: 6px; padding: 10px 0 16px; }
   .detail-price .price { font-size: 28px; }
   .detail-price .price-symbol { font-size: 16px; }
 
-  .detail-meta {
-    margin: 0;
-    border-top: 1px solid var(--line-soft);
-    padding-top: 16px;
+  .seller-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--brand-light);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
   }
-  .meta-row { display: flex; gap: 16px; font-size: 13px; padding: 5px 0; }
+  .seller-avatar, .msg-avatar {
+    width: 34px; height: 34px; flex: none;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #4096ff, #1677ff);
+    color: #fff; font-size: 14px; font-weight: 700;
+  }
+  .seller-name { font-size: 13.5px; font-weight: 600; color: #0a2540; line-height: 1.3; }
+  .seller-sub { font-size: 11.5px; color: var(--text-3); }
+  .seller-stats { display: flex; gap: 12px; font-size: 12px; color: var(--text-2); }
+  .seller-stats i { margin-right: 3px; color: #9cc3f5; }
+
+  .detail-meta { margin: 0; border-top: 1px solid var(--line-soft); padding-top: 12px; }
+  .meta-row { display: flex; gap: 16px; font-size: 13px; padding: 4px 0; }
   .meta-row dt { width: 64px; flex: none; color: var(--text-3); font-weight: 400; }
   .meta-row dd { margin: 0; color: var(--text); }
+
+  .buy-form { margin-top: 18px; }
+  .buy-form .form-control { border-radius: 12px; margin-bottom: 10px; font-size: 13px; }
+  .buy-form .btn, .btn-fav, .btn-disabled { border-radius: 999px; font-weight: 600; }
+  .btn-disabled {
+    background: #eef2f7; color: #8fa3bd; border: none;
+    width: 100%; margin-top: 18px;
+  }
+  .btn-fav {
+    background: #fff;
+    border: 1.5px solid rgba(22, 119, 255, .25);
+    color: var(--text-2);
+    font-size: 13.5px;
+  }
+  .btn-fav:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
+  .btn-fav.is-on { background: var(--brand-light); border-color: var(--brand); color: var(--brand-dark); }
+
+  .order-hint {
+    margin-top: 18px;
+    background: #fff7e6;
+    border: 1px solid #ffe3b0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #8a5b00;
+  }
+  .order-hint-title { font-weight: 700; margin-bottom: 4px; color: #b26a00; }
 
   .detail-desc {
     background: #fff;
     border: 1px solid var(--line);
     border-radius: var(--r);
-    padding: 24px 26px;
+    padding: 22px 24px;
   }
-  .detail-desc-title { font-size: 14.5px; font-weight: 500; color: var(--ink); margin: 0 0 12px; }
+  .detail-desc-title { font-size: 15px; font-weight: 700; color: #0a2540; margin: 0 0 12px; }
   .detail-desc-body {
-    font-size: 14px;
-    line-height: 1.9;
-    color: var(--text-2);
-    white-space: pre-wrap;
-    margin: 0;
+    font-size: 14px; line-height: 1.9; color: var(--text-2);
+    white-space: pre-wrap; margin: 0;
+  }
+
+  .msg-panel {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 22px 24px;
+  }
+  .msg-count {
+    display: inline-block; margin-left: 4px;
+    font-size: 12px; font-weight: 600;
+    padding: 0 7px; border-radius: 999px;
+    background: var(--brand-light); color: var(--brand-dark);
+  }
+  .msg-tip { font-size: 12px; color: var(--text-3); }
+  .msg-list { list-style: none; margin: 0 0 16px; padding: 0; }
+  .msg-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+  .msg-item:last-child { border-bottom: none; }
+  .msg-avatar { width: 30px; height: 30px; font-size: 13px; background: linear-gradient(135deg, #9cc3f5, #4096ff); }
+  .msg-body { min-width: 0; }
+  .msg-head { display: flex; align-items: center; gap: 8px; }
+  .msg-author { font-size: 13px; font-weight: 600; color: #0a2540; }
+  .msg-badge {
+    font-size: 10.5px; font-weight: 600; padding: 0 6px;
+    border-radius: 999px; background: var(--brand); color: #fff;
+  }
+  .msg-time { font-size: 11.5px; color: var(--text-3); }
+  .msg-text { margin: 3px 0 0; font-size: 13.5px; color: var(--text-2); line-height: 1.7; }
+  .msg-empty { font-size: 13px; color: var(--text-3); }
+  .msg-form { display: flex; gap: 10px; }
+  .msg-form .form-control { border-radius: 999px; font-size: 13px; padding-left: 16px; }
+  .msg-form .btn { border-radius: 999px; flex: none; }
+
+  @media (max-width: 575.98px) {
+    .msg-form { flex-direction: column; }
+    .msg-form .btn { width: 100%; }
   }
 </style>
 {% endblock %}

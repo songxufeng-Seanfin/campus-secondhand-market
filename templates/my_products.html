@@ -30,7 +30,9 @@
           </div>
           <div class="item-status">
             {% if p.is_sold %}
-              <span class="condition-tag">已售出</span>
+              <span class="condition-tag" style="background:#f2f4f7;color:#8a919c;">已售出</span>
+            {% elif p.is_reserved %}
+              <span class="condition-tag" style="background:#fff7e6;color:#b26a00;">有订单进行中</span>
             {% elif not p.is_active %}
               <span class="condition-tag" style="background:#f2f4f7;color:#8a919c;">已下架</span>
             {% else %}
@@ -41,6 +43,9 @@
         </div>
 
         <div class="item-actions">
+          {% if p.is_reserved or p.is_sold %}
+            <a href="{% url 'order_list' %}?tab=sold" class="btn btn-brand btn-sm">看订单</a>
+          {% endif %}
           <a href="{% url 'product_edit' p.pk %}" class="btn btn-ghost btn-sm">编辑</a>
           <a href="{% url 'product_delete' p.pk %}" class="btn btn-ghost btn-sm">删除</a>
         </div>

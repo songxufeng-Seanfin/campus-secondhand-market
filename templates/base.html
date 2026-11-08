@@ -405,12 +405,13 @@
     <a class="nav-link d-none d-md-inline" href="{% url 'home' %}">逛集市</a>
     {% if user.is_authenticated %}
       <a class="nav-link d-none d-md-inline" href="{% url 'my_products' %}">我的闲置</a>
-      <a class="nav-link d-none d-md-inline" href="{% url 'profile' %}">个人中心</a>
+      <a class="nav-link d-none d-md-inline" href="{% url 'order_list' %}">我的订单</a>
+      <a class="nav-link d-none d-md-inline" href="{% url 'favorites' %}">我的收藏</a>
+      <a class="nav-link d-none d-lg-inline" href="{% url 'profile' %}">个人中心</a>
     {% endif %}
 
     <div class="nav-actions">
       {% if user.is_authenticated %}
-        <a class="nav-link d-none d-sm-inline" href="{% url 'product_create' %}">发布闲置</a>
         <a class="btn btn-brand btn-sm px-3" href="{% url 'product_create' %}"><i class="bi bi-plus-lg me-1"></i>发布闲置</a>
         <form method="post" action="{% url 'logout' %}" class="d-inline">
           {% csrf_token %}
