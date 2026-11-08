@@ -189,7 +189,7 @@ class Command(BaseCommand):
 
         # 2. 演示用户
         sellers = []
-        for idx, username in enumerate(["林晓雯", "陈嘉豪", "周子航"]):
+        for idx, username in enumerate(["不想早八", "阿橘不吃香菜", "图书馆钉子户"]):
             user, created = User.objects.get_or_create(
                 username=username, defaults={"phone": f"1380000000{idx}"}
             )
