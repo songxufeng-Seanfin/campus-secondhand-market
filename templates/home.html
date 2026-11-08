@@ -136,43 +136,18 @@
 </div>
 
 {% if page_obj.object_list %}
-  <div class="row g-3 mb-4">
-    {% for product in page_obj %}
-      <div class="col-6 col-md-4">
-        <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
-          <div class="card card-soft h-100 product-card">
-            <div class="product-thumb">
-              {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.title }}" loading="lazy">
-              {% else %}
-                <div class="thumb-placeholder">{{ product.category.icon }}</div>
-              {% endif %}
-              {% if product.is_reserved %}<span class="reserved-badge">已预订</span>{% endif %}
-            </div>
-            <div class="card-body p-3">
-              <div class="product-title">{{ product.title }}</div>
-              <div class="d-flex align-items-end justify-content-between mt-2">
-                <div>
-                  <span class="price-symbol">¥</span><span class="price">{{ product.price|floatformat:"-2" }}</span>
-                  {% if product.original_price %}
-                    <span class="original-price">¥{{ product.original_price|floatformat:"-2" }}</span>
-                  {% endif %}
-                </div>
-                <span class="condition-tag">{{ product.get_condition_display }}</span>
-              </div>
-              <div class="d-flex align-items-center gap-1 mt-2 text-muted small">
-                <i class="bi bi-person-circle"></i>{{ product.seller.username }}
-                {% if product.location %}<span class="ms-2 text-truncate"><i class="bi bi-geo-alt"></i>{{ product.location }}</span>{% endif %}
-              </div>
-            </div>
-          </div>
-        </a>
-      </div>
-    {% endfor %}
+  <div class="row g-3 mb-4" id="productGrid">
+    {% include "partials/product_cards.html" %}
+  </div>
+
+  <!-- 上滑加载哨兵：滚到这里自动取下一页 -->
+  <div id="loadMore" class="load-more" data-next="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}">
+    <div class="load-spinner" hidden><span class="spinner"></span>正在加载更多好物…</div>
+    <div class="load-done" {% if page_obj.has_next %}hidden{% endif %}>已经看完所有好物啦 · 共 {{ total_count }} 件</div>
   </div>
 
   {% if page_obj.has_other_pages %}
-    <nav class="mb-4">
+    <nav class="mb-4" id="paginationFallback">
       <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
           <li class="page-item">
@@ -419,10 +394,94 @@
     color: #fff;
   }
 
+  /* ---------- 上滑加载更多 ---------- */
+  .load-more { text-align: center; padding: 6px 0 30px; font-size: 13px; color: var(--text-3); }
+  .load-spinner { display: inline-flex; align-items: center; gap: 8px; }
+  .load-spinner[hidden] { display: none; }
+  .load-done { color: #b3bcc9; letter-spacing: .2px; }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid #d6e6ff;
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   @media (max-width: 767.98px) {
     .hero { padding: 34px 24px; border-radius: 20px; }
     .hero h1 { font-size: 26px; }
     .stat-num { font-size: 21px; }
   }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* 商品列表上滑自动加载：滑到底部附近自动取下一页，追加到网格里 */
+(function () {
+  const grid = document.getElementById('productGrid');
+  const box = document.getElementById('loadMore');
+  if (!grid || !box) return;
+
+  const spinner = box.querySelector('.load-spinner');
+  const done = box.querySelector('.load-done');
+  const fallback = document.getElementById('paginationFallback');
+  // 有 JS 就用滑动加载，把传统翻页收起来（无 JS 时仍可用它兜底）
+  if (fallback) fallback.style.display = 'none';
+
+  let next = box.dataset.next || '';
+  let loading = false;
+
+  function pageUrl(page) {
+    const p = new URLSearchParams(window.location.search);
+    p.set('page', page);
+    return window.location.pathname + '?' + p.toString();
+  }
+
+  async function loadNext() {
+    if (!next || loading) return;
+    loading = true;
+    spinner.hidden = false;
+
+    try {
+      const resp = await fetch(pageUrl(next), {
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+      });
+      if (!resp.ok) throw new Error('load failed');
+      const html = await resp.text();
+      if (html.trim()) grid.insertAdjacentHTML('beforeend', html);
+
+      const hasNext = resp.headers.get('X-Has-Next') === '1';
+      next = hasNext ? (resp.headers.get('X-Next-Page') || '') : '';
+      if (!next) {
+        done.hidden = false;
+        if (observer) observer.disconnect();
+      }
+    } catch (err) {
+      // 加载失败：把翻页恢复出来，用户还能手动翻
+      if (fallback) fallback.style.display = '';
+    } finally {
+      loading = false;
+      spinner.hidden = true;
+    }
+  }
+
+  let observer = null;
+  if ('IntersectionObserver' in window) {
+    observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) loadNext();
+      });
+    }, {rootMargin: '240px 0px'});
+    observer.observe(box);
+  } else {
+    // 老浏览器退化为「滚动接近底部就加载」
+    window.addEventListener('scroll', function () {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 400) loadNext();
+    });
+  }
+})();
+</script>
 {% endblock %}

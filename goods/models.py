@@ -41,6 +41,14 @@ class Product(models.Model):
         ("fair", "明显使用"),
     ]
 
+    # 邮寄规则由卖家发布时预先设定，线上交易时据此计算运费
+    SHIPPING_CHOICES = [
+        ("free", "包邮"),
+        ("paid", "不包邮（运费买家承担）"),
+    ]
+    # 不包邮时的统一校内寄件运费，实际项目里可以按地区/重量算
+    PAID_SHIPPING_FEE = 8
+
     seller = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -64,6 +72,9 @@ class Product(models.Model):
     )
     image = models.ImageField("封面图", upload_to="products/%Y/%m/", blank=True, null=True)
     location = models.CharField("交易地点", max_length=40, blank=True)
+    shipping_policy = models.CharField(
+        "邮寄方式", max_length=6, choices=SHIPPING_CHOICES, default="free"
+    )
     views = models.PositiveIntegerField("浏览量", default=0)
     is_active = models.BooleanField("上架中", default=True)
     is_sold = models.BooleanField("已售出", default=False)
@@ -126,6 +137,15 @@ class Product(models.Model):
         """还能不能被下单：上架、未售出、没有进行中的订单。"""
         return self.is_active and not self.is_sold and not self.is_reserved
 
+    @property
+    def is_free_shipping(self):
+        return self.shipping_policy == "free"
+
+    @property
+    def shipping_fee_amount(self):
+        """线上交易时的运费：包邮为 0，不包邮取统一运费。"""
+        return 0 if self.is_free_shipping else self.PAID_SHIPPING_FEE
+
 
 class Order(models.Model):
     """交易订单：买家下单 → 卖家确认 → 买家收货完成。
@@ -168,6 +188,25 @@ class Order(models.Model):
     )
     price = models.DecimalField("成交价（元）", max_digits=8, decimal_places=2)
     message = models.CharField("给卖家的话", max_length=120, blank=True)
+
+    # ---- 交易方式：面对面 / 线上 ----
+    TRADE_MODE_CHOICES = [
+        ("face", "面对面交易"),
+        ("online", "线上交易"),
+    ]
+    trade_mode = models.CharField(
+        "交易方式", max_length=8, choices=TRADE_MODE_CHOICES, default="face"
+    )
+    # 线上交易才需要收货信息；面对面交易留空
+    receiver_name = models.CharField("收货人", max_length=20, blank=True)
+    receiver_phone = models.CharField("联系电话", max_length=20, blank=True)
+    address = models.CharField("收货地址", max_length=120, blank=True)
+    shipping_fee = models.DecimalField(
+        "运费（元）", max_digits=6, decimal_places=2, default=0
+    )
+    is_paid = models.BooleanField("已支付", default=False)
+    paid_at = models.DateTimeField("支付时间", blank=True, null=True)
+
     status = models.CharField(
         "状态", max_length=12, choices=STATUS_CHOICES, default="pending"
     )
@@ -197,6 +236,20 @@ class Order(models.Model):
     @property
     def is_active(self):
         return self.status in self.ACTIVE_STATUSES
+
+    @property
+    def is_online(self):
+        return self.trade_mode == "online"
+
+    @property
+    def total_price(self):
+        """线上交易需付总额 = 商品价 + 运费；面对面交易就是商品价。"""
+        return self.price + (self.shipping_fee or 0)
+
+    @property
+    def can_pay(self):
+        """线上订单、未支付、还在进行中，才显示支付按钮。"""
+        return self.is_online and not self.is_paid and self.is_active
 
     @property
     def status_style(self):
@@ -263,3 +316,92 @@ class ProductMessage(models.Model):
     def is_seller(self):
         """卖家本人的留言加个“卖家”小标签，避免冒充。"""
         return self.author_id == self.product.seller_id
+
+
+class Conversation(models.Model):
+    """买卖双方围绕某件商品的一对一会话。
+
+    一个买家对一件商品只会有一个会话（唯一约束保证），
+    点「我想要」和「直接购买」进的是同一个会话，避免同一件商品被拆成多条聊天。
+    """
+
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="conversations", verbose_name="商品"
+    )
+    buyer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="conversations_as_buyer",
+        verbose_name="买家",
+    )
+    seller = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="conversations_as_seller",
+        verbose_name="卖家",
+    )
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("最后活跃", auto_now=True)
+
+    class Meta:
+        verbose_name = "私聊会话"
+        verbose_name_plural = "私聊会话"
+        # 最近有新消息的排前面
+        ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["buyer", "-updated_at"]),
+            models.Index(fields=["seller", "-updated_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "buyer"], name="uniq_conversation_product_buyer"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.buyer} ↔ {self.seller} · {self.product.title}"
+
+    @property
+    def last_message(self):
+        return self.chat_messages.last()
+
+    def other_party(self, user):
+        """会话里的另一方，模板上显示对方的昵称。"""
+        return self.seller if user.id == self.buyer_id else self.buyer
+
+    def unread_count_for(self, user):
+        """给对方算未读数：别人发给我、我还没点开的。"""
+        return self.chat_messages.filter(is_read=False).exclude(sender=user).count()
+
+    def can_access(self, user):
+        return user.is_authenticated and user.id in (self.buyer_id, self.seller_id)
+
+
+class ChatMessage(models.Model):
+    """会话消息。
+
+    is_read 由接收方打开会话时批量置为 True，
+    导航栏的未读红点就靠它算，不需要额外的通知表。
+    """
+
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name="chat_messages", verbose_name="会话"
+    )
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="chat_messages",
+        verbose_name="发送者",
+    )
+    body = models.CharField("内容", max_length=300)
+    is_read = models.BooleanField("已读", default=False)
+    created_at = models.DateTimeField("发送时间", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "会话消息"
+        verbose_name_plural = "会话消息"
+        ordering = ["created_at"]
+        indexes = [models.Index(fields=["conversation", "created_at"])]
+
+    def __str__(self):
+        return f"{self.sender}: {self.body[:20]}"

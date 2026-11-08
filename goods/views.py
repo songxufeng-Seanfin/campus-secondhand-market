@@ -2,12 +2,23 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import F, Prefetch, Q
+from django.db.models import Count, F, Prefetch, Q
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import ProductForm
-from .models import Category, Favorite, Order, Product, ProductMessage
+from .models import (
+    Category,
+    ChatMessage,
+    Conversation,
+    Favorite,
+    Order,
+    Product,
+    ProductMessage,
+)
 
 
 def _base_queryset():
@@ -26,7 +37,11 @@ def _base_queryset():
 
 
 def home(request):
-    """首页：商品列表 + 关键词搜索 + 分类筛选 + 分页。"""
+    """首页：商品列表 + 关键词搜索 + 分类筛选 + 分页。
+
+    滑动加载时前端带上 X-Requested-With 头，只返回商品卡片片段，
+    避免整页 HTML 重复传输；直接访问则照常返回完整页面。
+    """
     products = _base_queryset()
 
     keyword = request.GET.get("q", "").strip()
@@ -40,7 +55,7 @@ def home(request):
     if current_slug:
         products = products.filter(category__slug=current_slug)
 
-    paginator = Paginator(products, 9)
+    paginator = Paginator(products, 6)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     context = {
@@ -50,6 +65,14 @@ def home(request):
         "current_category": current_slug,
         "total_count": products.count(),
     }
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        response = render(request, "partials/product_cards.html", context)
+        # 前端靠这两个响应头判断还有没有下一页
+        response["X-Has-Next"] = "1" if page_obj.has_next() else "0"
+        response["X-Next-Page"] = (
+            str(page_obj.next_page_number()) if page_obj.has_next() else ""
+        )
+        return response
     return render(request, "home.html", context)
 
 
@@ -149,43 +172,226 @@ def my_products(request):
     return render(request, "my_products.html", {"products": products})
 
 
-# ============================ 订单 ============================
+# ============================ 私聊 ============================
+
+
+def _conversation_or_404(pk, user):
+    """取会话并校验参与身份：不是买卖双方一律 404，不暴露别人聊了什么。"""
+    conv = get_object_or_404(
+        Conversation.objects.select_related(
+            "product", "product__category", "product__seller", "buyer", "seller"
+        ),
+        pk=pk,
+    )
+    if not conv.can_access(user):
+        raise Http404("会话不存在")
+    return conv
+
+
+def _msg_payload(msg, me_id):
+    """消息的最小 JSON 结构，前端轮询和发送共用同一份。"""
+    return {
+        "id": msg.pk,
+        "body": msg.body,
+        "sender": msg.sender.username,
+        "mine": msg.sender_id == me_id,
+        "time": timezone.localtime(msg.created_at).strftime("%m-%d %H:%M"),
+    }
+
+
+@login_required
+def chat_start(request, pk):
+    """【我想要】/【直接购买】都走这里：拿到（或新建）与卖家的会话。"""
+    product = get_object_or_404(Product.objects.select_related("seller"), pk=pk)
+
+    if product.seller_id == request.user.id:
+        messages.error(request, "这是你自己发布的闲置，不用私聊自己啦")
+        return redirect("product_detail", pk=pk)
+
+    conv, _ = Conversation.objects.get_or_create(
+        product=product, buyer=request.user, defaults={"seller": product.seller}
+    )
+    return redirect("chat_detail", pk=conv.pk)
+
+
+@login_required
+def chat_detail(request, pk):
+    """会话页：顶部商品 Banner + 聊天区。打开即把对方消息标为已读。"""
+    conv = _conversation_or_404(pk, request.user)
+
+    # 进入会话就算读过了，导航红点随之消失
+    conv.chat_messages.exclude(sender=request.user).filter(is_read=False).update(is_read=True)
+
+    chat_messages = conv.chat_messages.select_related("sender")
+    last_id = chat_messages.last().pk if chat_messages else 0
+
+    # 买家已经下过单就把进度带出来，避免重复下单
+    my_order = (
+        Order.objects.filter(product=conv.product, buyer=conv.buyer).order_by("-created_at").first()
+    )
+
+    return render(
+        request,
+        "chat.html",
+        {
+            "conversation": conv,
+            "other": conv.other_party(request.user),
+            "chat_messages": chat_messages,
+            "last_id": last_id,
+            "my_order": my_order,
+            "product": conv.product,
+        },
+    )
 
 
 @login_required
 @require_POST
-def order_create(request, pk):
-    """买家下单（提交购买意向）。
+def chat_send(request, pk):
+    """发消息：表单提交走整页刷新，fetch 提交走 JSON 局部更新。"""
+    conv = _conversation_or_404(pk, request.user)
+    body = (request.POST.get("body") or "").strip()
 
-    - 不能买自己的东西；
-    - 商品必须仍然可售（上架、未售出、没有进行中的订单）；
-    - 数据库唯一约束兜底：连点两次也只会产生一张进行中的订单。
+    if not body:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": False, "error": "说点什么再发送吧"}, status=400)
+        messages.error(request, "消息不能为空")
+        return redirect("chat_detail", pk=conv.pk)
+
+    msg = ChatMessage.objects.create(
+        conversation=conv, sender=request.user, body=body[:300]
+    )
+    # 触发 updated_at，让这条会话排到消息列表最前面
+    conv.save(update_fields=["updated_at"])
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"ok": True, "message": _msg_payload(msg, request.user.id)})
+    return redirect("chat_detail", pk=conv.pk)
+
+
+@login_required
+def chat_poll(request, pk):
+    """轮询新消息：每 3 秒拉一次，实现对方消息自动出现 + 卖家收到提醒。"""
+    conv = _conversation_or_404(pk, request.user)
+    try:
+        after = int(request.GET.get("after") or 0)
+    except ValueError:
+        after = 0
+
+    new_msgs = list(conv.chat_messages.filter(pk__gt=after).select_related("sender"))
+    if new_msgs:
+        # 拉到的消息里凡是对方发的，顺手标记已读（用户此刻就在这个会话里）
+        conv.chat_messages.filter(
+            pk__gt=after, is_read=False
+        ).exclude(sender=request.user).update(is_read=True)
+
+    return JsonResponse(
+        {
+            "messages": [_msg_payload(m, request.user.id) for m in new_msgs],
+            "last_id": new_msgs[-1].pk if new_msgs else after,
+        }
+    )
+
+
+@login_required
+def chat_list(request):
+    """消息中心：我参与的全部会话，带未读数。"""
+    conversations = (
+        Conversation.objects.filter(Q(buyer=request.user) | Q(seller=request.user))
+        .select_related("product", "product__category", "buyer", "seller")
+        .annotate(
+            unread=Count(
+                "chat_messages",
+                filter=Q(chat_messages__is_read=False) & ~Q(chat_messages__sender=request.user),
+            )
+        )
+    )
+    return render(request, "chat_list.html", {"conversations": conversations})
+
+
+# ============================ 订单 ============================
+
+
+@login_required
+def order_create(request, pk):
+    """旧入口保留兼容：统一引导到新的下单页（可选择交易方式）。"""
+    return redirect("checkout", pk=pk)
+
+
+@login_required
+def checkout(request, pk):
+    """下单页：面对面交易 / 线上交易 二选一。
+
+    - 面对面：校内自提，不填地址、不收运费、不走线上支付；
+    - 线上：卖家预先设了包邮或不包邮，买家填收货地址后可立即支付。
+    付款在这里是演示级「模拟支付」，只改订单支付状态，不接真实支付渠道。
     """
-    product = get_object_or_404(Product.objects.select_related("seller"), pk=pk)
+    product = get_object_or_404(Product.objects.select_related("seller", "category"), pk=pk)
 
     if product.seller_id == request.user.id:
         messages.error(request, "不能购买自己发布的闲置")
         return redirect("product_detail", pk=pk)
-
     if not product.is_on_sale:
         messages.error(request, "这件闲置已经被预订或售出了，看看同类好物吧")
         return redirect("product_detail", pk=pk)
 
-    note = (request.POST.get("message") or "").strip()[:120]
-    try:
-        with transaction.atomic():
-            Order.objects.create(
-                product=product,
-                buyer=request.user,
-                seller=product.seller,
-                price=product.price,
-                message=note,
-            )
-    except IntegrityError:
-        messages.info(request, "你已经下过单了，去「我的订单」看看进度吧")
-    else:
-        messages.success(request, "已提交购买意向，等卖家确认后就能约时间交易啦")
-    return redirect("order_list")
+    conv = Conversation.objects.filter(product=product, buyer=request.user).first()
+
+    if request.method == "POST":
+        mode = request.POST.get("trade_mode") or "face"
+        if mode not in ("face", "online"):
+            messages.error(request, "请选择交易方式")
+            return redirect("checkout", pk=pk)
+
+        receiver_name = (request.POST.get("receiver_name") or "").strip()
+        receiver_phone = (request.POST.get("receiver_phone") or "").strip()
+        address = (request.POST.get("address") or "").strip()
+        shipping_fee = product.shipping_fee_amount if mode == "online" else 0
+
+        # 线上交易必须能寄到：收货信息三件套缺一不可
+        if mode == "online" and not (receiver_name and receiver_phone and address):
+            messages.error(request, "线上交易需要填写收货人、电话和收货地址")
+            return redirect("checkout", pk=pk)
+
+        pay_now = mode == "online" and request.POST.get("pay") == "1"
+
+        try:
+            with transaction.atomic():
+                order = Order.objects.create(
+                    product=product,
+                    buyer=request.user,
+                    seller=product.seller,
+                    price=product.price,
+                    message=(request.POST.get("message") or "").strip()[:120],
+                    trade_mode=mode,
+                    receiver_name=receiver_name if mode == "online" else "",
+                    receiver_phone=receiver_phone if mode == "online" else "",
+                    address=address if mode == "online" else "",
+                    shipping_fee=shipping_fee,
+                    is_paid=pay_now,
+                    paid_at=timezone.now() if pay_now else None,
+                )
+        except IntegrityError:
+            messages.info(request, "你已经下过单了，去「我的订单」看看进度吧")
+            return redirect("order_list")
+
+        if pay_now:
+            messages.success(request, "支付成功，已通知卖家尽快发货 🎉")
+        elif mode == "face":
+            messages.success(request, "已下单，等卖家确认后约个时间当面交易吧")
+        else:
+            messages.success(request, "订单已提交，可以在「我的订单」里完成支付")
+        return redirect("order_list")
+
+    return render(
+        request,
+        "checkout.html",
+        {
+            "product": product,
+            "conversation": conv,
+            "shipping_fee": product.shipping_fee_amount,
+            "total_price": product.price + product.shipping_fee_amount,
+        },
+    )
 
 
 @login_required
@@ -236,6 +442,13 @@ def order_action(request, pk, action):
             order.status = "cancelled"
             order.save(update_fields=["status", "updated_at"])
             messages.info(request, "订单已取消")
+
+        elif action == "pay" and is_buyer and order.can_pay:
+            # 模拟支付：真实项目这里会跳支付渠道，回调后再改状态
+            order.is_paid = True
+            order.paid_at = timezone.now()
+            order.save(update_fields=["is_paid", "paid_at", "updated_at"])
+            messages.success(request, "支付成功，已通知卖家尽快发货 🎉")
 
         elif action == "complete" and order.status == "accepted" and (is_buyer or is_seller):
             order.status = "completed"

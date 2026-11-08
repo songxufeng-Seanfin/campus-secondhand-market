@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% block title %}确认订单 - {{ product.title }} - 闲小集{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+  {% if conversation %}
+    <a href="{% url 'chat_detail' conversation.pk %}" class="back-link"><i class="bi bi-arrow-left"></i>返回和卖家的对话</a>
+  {% else %}
+    <a href="{% url 'product_detail' product.pk %}" class="back-link"><i class="bi bi-arrow-left"></i>返回商品详情</a>
+  {% endif %}
+</div>
+
+<h1 class="checkout-title">确认订单</h1>
+<p class="checkout-sub">选择怎么拿到这件宝贝，再确认下单</p>
+
+<form method="post" action="{% url 'checkout' product.pk %}" id="checkoutForm">
+  {% csrf_token %}
+
+  <!-- 商品摘要 -->
+  <div class="summary-card">
+    <div class="summary-thumb">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.title }}">
+      {% else %}
+        <span>{{ product.category.icon }}</span>
+      {% endif %}
+    </div>
+    <div class="summary-main">
+      <div class="summary-title">{{ product.title }}</div>
+      <div class="summary-meta">
+        <span class="condition-tag">{{ product.get_condition_display }}</span>
+        <span>{{ product.category.icon }} {{ product.category.name }}</span>
+        <span>卖家 {{ product.seller.username }}</span>
+      </div>
+    </div>
+    <div class="summary-price"><span class="price-symbol">¥</span><span class="price">{{ product.price|floatformat:"-2" }}</span></div>
+  </div>
+
+  <!-- 交易方式 -->
+  <h2 class="block-title">交易方式</h2>
+  <div class="mode-grid">
+    <label class="mode-card">
+      <input type="radio" name="trade_mode" value="face" checked>
+      <div class="mode-body">
+        <div class="mode-icon">🤝</div>
+        <div class="mode-name">面对面交易</div>
+        <div class="mode-desc">校内线下自提，当面验货当面付款</div>
+        <div class="mode-tag">不需要地址 · 不收运费</div>
+      </div>
+    </label>
+
+    <label class="mode-card">
+      <input type="radio" name="trade_mode" value="online">
+      <div class="mode-body">
+        <div class="mode-icon">📦</div>
+        <div class="mode-name">线上交易</div>
+        <div class="mode-desc">卖家寄到你的地址，下单后在线支付</div>
+        <div class="mode-tag">
+          {% if product.is_free_shipping %}卖家包邮 · 运费 ¥0{% else %}不包邮 · 运费 ¥{{ shipping_fee }}{% endif %}
+        </div>
+      </div>
+    </label>
+  </div>
+
+  <!-- 线上收货信息：选线上才展开 -->
+  <div class="online-fields" id="onlineFields" hidden>
+    <h2 class="block-title">收货信息</h2>
+    <div class="field-grid">
+      <div>
+        <label class="form-label">收货人 <span class="req">*</span></label>
+        <input type="text" name="receiver_name" class="form-control" maxlength="20" placeholder="真实姓名">
+      </div>
+      <div>
+        <label class="form-label">联系电话 <span class="req">*</span></label>
+        <input type="tel" name="receiver_phone" class="form-control" maxlength="20" placeholder="快递联系用">
+      </div>
+    </div>
+    <div class="mt-3">
+      <label class="form-label">收货地址 <span class="req">*</span></label>
+      <input type="text" name="address" class="form-control" maxlength="120"
+             placeholder="例如：XX大学 XX 校区 X 号宿舍楼 302 室">
+    </div>
+    <p class="field-tip">信息只用于这次寄件，不会展示在集市上。</p>
+  </div>
+
+  <!-- 给卖家留言 -->
+  <h2 class="block-title">给卖家留言</h2>
+  <input type="text" name="message" maxlength="120" class="form-control"
+         placeholder="选填，例如：明天下午三点图书馆门口方便吗">
+
+  <!-- 金额汇总 -->
+  <div class="amount-card">
+    <div class="amount-row"><span>商品金额</span><span>¥{{ product.price|floatformat:"-2" }}</span></div>
+    <div class="amount-row" id="shipRow">
+      <span>运费</span>
+      <span id="shipValue">
+        {% if product.is_free_shipping %}包邮 ¥0.00{% else %}¥{{ shipping_fee|floatformat:"-2" }}{% endif %}
+      </span>
+    </div>
+    <div class="amount-row is-total">
+      <span>应付合计</span>
+      <span class="amount-total"><span class="price-symbol">¥</span><span id="totalValue">{{ total_price|floatformat:"-2" }}</span></span>
+    </div>
+  </div>
+
+  <div class="submit-bar">
+    <button type="submit" class="btn btn-brand w-100 py-2" id="payBtn" hidden>
+      立即支付 ¥<span id="payValue">{{ total_price|floatformat:"-2" }}</span>
+    </button>
+    <button type="submit" class="btn btn-brand w-100 py-2" id="faceBtn">确认下单 · 当面交易</button>
+    <button type="submit" class="btn btn-outline-secondary w-100 py-2 mt-2" id="laterBtn" hidden>
+      先下单，稍后再支付
+    </button>
+    <p class="submit-tip">
+      面对面交易：和卖家约好时间地点，当面验货付款，不需要线上支付<br>
+      线上交易：这里为演示支付，点击「立即支付」即视为付款成功
+    </p>
+  </div>
+</form>
+
+<style>
+  .back-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text-3); text-decoration: none; }
+  .back-link:hover { color: var(--brand); }
+
+  .checkout-title { font-size: 24px; font-weight: 800; color: #0a2540; margin: 0 0 4px; }
+  .checkout-sub { font-size: 13.5px; color: var(--text-2); margin: 0 0 20px; }
+
+  .summary-card {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; border: 1px solid var(--line); border-radius: var(--r);
+    padding: 14px 18px; margin-bottom: 24px; box-shadow: var(--shadow-1);
+  }
+  .summary-thumb {
+    width: 76px; height: 58px; flex: none; border-radius: 10px; overflow: hidden;
+    background: linear-gradient(135deg, #eef6ff, #e2efff);
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .summary-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .summary-main { flex: 1; min-width: 0; }
+  .summary-title { font-size: 15px; font-weight: 600; color: #0a2540; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .summary-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--text-3); margin-top: 4px; }
+  .summary-price { flex: none; font-size: 20px; font-weight: 700; color: #d4380d; }
+  .summary-price .price-symbol { font-size: 13px; }
+
+  .block-title { font-size: 15px; font-weight: 700; color: #0a2540; margin: 0 0 12px; }
+
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .mode-card {
+    position: relative; display: block; cursor: pointer;
+    background: #fff; border: 1.5px solid var(--line); border-radius: var(--r);
+    padding: 16px 16px 14px;
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+  }
+  .mode-card:hover { border-color: #bcd9ff; }
+  .mode-card input { position: absolute; opacity: 0; pointer-events: none; }
+  .mode-card:has(input:checked) {
+    border-color: var(--brand);
+    background: #f7fbff;
+    box-shadow: 0 0 0 3px rgba(22, 119, 255, .08);
+  }
+  .mode-icon { font-size: 22px; line-height: 1; }
+  .mode-name { font-size: 15px; font-weight: 700; color: #0a2540; margin: 8px 0 4px; }
+  .mode-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.6; }
+  .mode-tag {
+    display: inline-block; margin-top: 8px;
+    font-size: 11.5px; padding: 2px 8px; border-radius: 999px;
+    background: #eef3fb; color: var(--brand-dark);
+  }
+
+  .online-fields {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--r);
+    padding: 18px; margin-bottom: 20px;
+  }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-tip { font-size: 12px; color: var(--text-3); margin: 10px 0 0; }
+  .req { color: #d4380d; }
+
+  .amount-card {
+    background: #fbfdff; border: 1px solid var(--line); border-radius: var(--r);
+    padding: 14px 18px; margin: 20px 0 16px;
+  }
+  .amount-row { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--text-2); padding: 4px 0; }
+  .amount-row.is-total { border-top: 1px dashed var(--line); margin-top: 6px; padding-top: 10px; font-weight: 600; color: #0a2540; }
+  .amount-total { font-size: 20px; font-weight: 700; color: #d4380d; }
+  .amount-total .price-symbol { font-size: 13px; }
+
+  .submit-bar { margin-bottom: 40px; }
+  .submit-tip { font-size: 11.5px; color: var(--text-3); line-height: 1.8; margin: 10px 0 0; }
+
+  @media (max-width: 575.98px) {
+    .mode-grid { grid-template-columns: 1fr; }
+    .field-grid { grid-template-columns: 1fr; }
+    .summary-thumb { width: 60px; height: 46px; }
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById('checkoutForm');
+  const radios = form.querySelectorAll('input[name=trade_mode]');
+  const onlineFields = document.getElementById('onlineFields');
+  const faceBtn = document.getElementById('faceBtn');
+  const payBtn = document.getElementById('payBtn');
+  const laterBtn = document.getElementById('laterBtn');
+  const shipRow = document.getElementById('shipRow');
+  const shipValue = document.getElementById('shipValue');
+  const totalValue = document.getElementById('totalValue');
+  const payValue = document.getElementById('payValue');
+
+  const PRICE = {{ product.price|stringformat:"s" }};
+  const FEE = {{ shipping_fee|stringformat:"s" }};
+  const FREE = {% if product.is_free_shipping %}true{% else %}false{% endif %};
+
+  function mode() {
+    return form.querySelector('input[name=trade_mode]:checked').value;
+  }
+
+  function refresh() {
+    const isOnline = mode() === 'online';
+    onlineFields.hidden = !isOnline;
+
+    // 面对面不收运费，线上按卖家设置算
+    const fee = isOnline ? FEE : 0;
+    const total = (parseFloat(PRICE) + fee).toFixed(2);
+
+    shipRow.style.display = isOnline ? '' : 'none';
+    if (isOnline) {
+      shipValue.textContent = FREE ? '包邮 ¥0.00' : '¥' + fee.toFixed(2);
+    }
+    totalValue.textContent = total;
+    payValue.textContent = total;
+
+    faceBtn.hidden = isOnline;
+    payBtn.hidden = !isOnline;
+    laterBtn.hidden = !isOnline;
+
+    // 线上「立即支付」带 pay=1，稍后支付不带
+    payBtn.name = 'pay';
+    payBtn.value = '1';
+    laterBtn.name = 'pay';
+    laterBtn.value = '0';
+    faceBtn.removeAttribute('name');
+
+    // 面对面交易不需要收货信息，提交时也不会被校验
+    onlineFields.querySelectorAll('input').forEach(function (i) {
+      i.required = isOnline;
+    });
+  }
+
+  radios.forEach(function (r) { r.addEventListener('change', refresh); });
+  refresh();
+})();
+</script>
+{% endblock %}

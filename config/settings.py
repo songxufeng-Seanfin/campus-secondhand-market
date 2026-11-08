@@ -52,6 +52,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # 导航栏未读消息红点
+                'goods.context_processors.chat_notifications',
             ],
         },
     },

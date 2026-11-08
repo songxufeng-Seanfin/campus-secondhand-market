@@ -60,7 +60,13 @@
         {% if product.location %}
           <div class="meta-row"><dt>交易地点</dt><dd>{{ product.location }}</dd></div>
         {% endif %}
-        <div class="meta-row"><dt>交易方式</dt><dd>面交 / 邮寄，和卖家商量</dd></div>
+        <div class="meta-row">
+          <dt>邮寄方式</dt>
+          <dd>
+            {% if product.is_free_shipping %}卖家包邮{% else %}不包邮 · 运费 ¥{{ product.shipping_fee_amount }}{% endif %}
+            ，支持校内面交
+          </dd>
+        </div>
         <div class="meta-row"><dt>发布时间</dt><dd>{{ product.created_at|date:"Y-m-d H:i" }}</dd></div>
       </dl>
 
@@ -90,12 +96,16 @@
           <p class="section-sub text-center mt-2 mb-0">交易取消后会重新上架，可以先收藏</p>
 
         {% else %}
-          <form method="post" action="{% url 'order_create' product.pk %}" class="buy-form">
+          <form method="post" action="{% url 'chat_start' product.pk %}" class="buy-form">
             {% csrf_token %}
-            <input type="text" name="message" maxlength="120" class="form-control"
-                   placeholder="给卖家留句话（选填）：比如“明天下午图书馆门口可以吗”">
-            <button class="btn btn-brand w-100 py-2">我想要 · 提交购买意向</button>
+            <div class="d-flex gap-2">
+              <button class="btn btn-want flex-fill py-2" name="intent" value="want">我想要</button>
+              <button class="btn btn-brand flex-fill py-2" name="intent" value="buy">直接购买</button>
+            </div>
           </form>
+          <p class="section-sub text-center mt-2 mb-0">
+            都会先进入和卖家的私聊，聊妥后在对话顶部点「购买」下单
+          </p>
 
         {% endif %}
 
@@ -277,6 +287,13 @@
   .buy-form { margin-top: 18px; }
   .buy-form .form-control { border-radius: 12px; margin-bottom: 10px; font-size: 13px; }
   .buy-form .btn, .btn-fav, .btn-disabled { border-radius: 999px; font-weight: 600; }
+  .btn-want {
+    background: #fff;
+    border: 1.5px solid rgba(22, 119, 255, .35);
+    color: var(--brand);
+    font-size: 14px;
+  }
+  .btn-want:hover { background: var(--brand-light); border-color: var(--brand); color: var(--brand-dark); }
   .btn-disabled {
     background: #eef2f7; color: #8fa3bd; border: none;
     width: 100%; margin-top: 18px;

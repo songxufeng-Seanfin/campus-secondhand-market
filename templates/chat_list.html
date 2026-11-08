@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}消息 - 闲小集{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>消息</h1>
+  <p>这里是你和同学关于商品的一对一私聊，有未读消息会显示红点。</p>
+</div>
+
+{% if conversations %}
+  <div class="conv-list">
+    {% for c in conversations %}
+      <a href="{% url 'chat_detail' c.pk %}" class="conv-item {% if c.unread %}has-unread{% endif %}">
+        <div class="conv-thumb">
+          {% if c.product.image %}
+            <img src="{{ c.product.image.url }}" alt="{{ c.product.title }}">
+          {% else %}
+            <span>{{ c.product.category.icon }}</span>
+          {% endif %}
+        </div>
+
+        <div class="conv-main">
+          <div class="conv-title">
+            {% if c.buyer_id == user.id %}{{ c.seller.username }}{% else %}{{ c.buyer.username }}{% endif %}
+            <span class="conv-role">{% if c.seller_id == user.id %}买家咨询{% else %}我咨询的{% endif %}</span>
+            <span class="conv-time">{{ c.updated_at|date:"m-d H:i" }}</span>
+          </div>
+          <div class="conv-product">{{ c.product.title }}</div>
+          <div class="conv-preview">
+            {% if c.last_message %}
+              {{ c.last_message.body|truncatechars:36 }}
+            {% else %}
+              还没有消息，打个招呼吧
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="conv-side">
+          {% if c.unread %}<span class="conv-badge">{{ c.unread }}</span>{% endif %}
+          <span class="conv-price"><span class="price-symbol">¥</span>{{ c.product.price|floatformat:"-2" }}</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card card-soft mb-4">
+    <div class="card-body text-center py-5">
+      <div style="font-size:44px;">💬</div>
+      <p class="mt-3 mb-1 fw-bold" style="color:#0a2540;">还没有聊天</p>
+      <p class="small text-muted mb-3">在商品详情页点「我想要」或「直接购买」，就能和卖家聊起来</p>
+      <a href="{% url 'home' %}" class="btn btn-brand px-4">去逛集市</a>
+    </div>
+  </div>
+{% endif %}
+
+<style>
+  .page-head { margin-bottom: 20px; }
+  .page-head h1 { font-size: 24px; font-weight: 800; color: #0a2540; margin: 0 0 6px; }
+  .page-head p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+
+  .conv-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+  .conv-item {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; border: 1px solid var(--line); border-radius: var(--r);
+    padding: 12px 16px; text-decoration: none;
+    transition: box-shadow .2s ease, border-color .2s ease;
+  }
+  .conv-item:hover { box-shadow: var(--shadow-2); border-color: #d6e6ff; }
+  .conv-item.has-unread { border-color: #bcd9ff; background: #fbfdff; }
+
+  .conv-thumb {
+    width: 60px; height: 46px; flex: none; border-radius: 8px; overflow: hidden;
+    background: linear-gradient(135deg, #eef6ff, #e2efff);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .conv-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  .conv-main { flex: 1; min-width: 0; }
+  .conv-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #0a2540; }
+  .conv-role { font-size: 10.5px; font-weight: 500; padding: 1px 6px; border-radius: 999px; background: #eef3fb; color: var(--text-3); }
+  .conv-time { margin-left: auto; font-size: 11.5px; font-weight: 400; color: var(--text-3); }
+  .conv-product { font-size: 12.5px; color: var(--text-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .conv-preview { font-size: 12.5px; color: var(--text-3); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .conv-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .conv-badge {
+    min-width: 20px; height: 20px; padding: 0 6px;
+    border-radius: 999px; background: #ff4d4f; color: #fff;
+    font-size: 11.5px; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .conv-price { font-size: 14px; font-weight: 700; color: #d4380d; }
+  .conv-price .price-symbol { font-size: 11px; }
+</style>
+{% endblock %}

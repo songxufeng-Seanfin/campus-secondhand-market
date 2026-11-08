@@ -22,6 +22,7 @@ class ProductForm(forms.ModelForm):
             "condition",
             "image",
             "location",
+            "shipping_policy",
             "description",
         ]
         widgets = {
@@ -39,6 +40,7 @@ class ProductForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "选填，填了会显示折扣", "step": "0.01", "min": "0"}
             ),
             "condition": forms.Select(attrs={"class": "form-select"}),
+            "shipping_policy": forms.Select(attrs={"class": "form-select"}),
             "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "location": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "选填，例如：白云校区 · 图书馆门口"}

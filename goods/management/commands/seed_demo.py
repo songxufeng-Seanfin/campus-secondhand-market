@@ -19,7 +19,15 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from accounts.models import User
-from goods.models import Category, Favorite, Order, Product, ProductMessage
+from goods.models import (
+    Category,
+    ChatMessage,
+    Conversation,
+    Favorite,
+    Order,
+    Product,
+    ProductMessage,
+)
 
 # 商品 → 演示实拍图（放在 goods/seed_images/ 下，1120x840 的 4:3 图片）
 IMAGE_MAP = {
@@ -278,10 +286,30 @@ class Command(BaseCommand):
                 _, created_fav = Favorite.objects.get_or_create(user=buyer, product=product)
                 favorite_count += int(created_fav)
 
+        # 5. 私聊演示：一个真实对话，最后一条来自卖家且未读（能直接看到红点）
+        chat_count = 0
+        guitar = Product.objects.filter(title="雅马哈 F310 民谣吉他").first()
+        if guitar:
+            conv, _ = Conversation.objects.get_or_create(
+                product=guitar, buyer=buyer, defaults={"seller": guitar.seller}
+            )
+            demo_chat = [
+                (buyer, "琴还在吗？最近想学吉他，看着成色不错", True),
+                (guitar.seller, "在的，去年买的，弹了不到十次，琴弦刚换过", True),
+                (buyer, "那周末方便看看琴吗？我就在 3 号宿舍楼", True),
+                (guitar.seller, "可以呀，周六下午我都在音乐社活动室，你过来直接试", False),
+            ]
+            for sender, body, read in demo_chat:
+                if not ChatMessage.objects.filter(conversation=conv, body=body).exists():
+                    ChatMessage.objects.create(
+                        conversation=conv, sender=sender, body=body, is_read=read
+                    )
+                    chat_count += 1
+
         self.stdout.write(
             self.style.SUCCESS(
                 f"完成：新增 {created_count} 件商品、{order_count} 笔订单、"
-                f"{message_count} 条留言、{favorite_count} 个收藏；"
+                f"{message_count} 条留言、{favorite_count} 个收藏、{chat_count} 条私聊消息；"
                 f"当前商品总数 {Product.objects.count()}"
             )
         )
