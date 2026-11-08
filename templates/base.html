@@ -8,26 +8,55 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
+    /* ============ 设计变量：全站唯一色彩与圆角来源 ============ */
     :root {
-      --brand: #1677ff;
-      --brand-dark: #0958d9;
-      --brand-light: #e8f3ff;
-      --ink: #1c2b41;
-      --ink-soft: #5b7ba0;
+      /* 主色：低饱和清蓝，全局只用这一个蓝 */
+      --brand: #2f6ad9;
+      --brand-dark: #2559b8;
+      --brand-light: #eff4fd;
+      --brand-line: #d8e4f8;
+
+      /* 中性色阶：只有灰梯队 */
+      --ink: #1f2329;
+      --text: #333333;
+      --text-2: #666666;
+      --text-3: #999999;
+      --line: #e9ecf1;
+      --line-soft: #f2f4f7;
+      --surface: #ffffff;
+
+      /* 圆角：全站统一，禁止大圆角 */
+      --r: 8px;
+      --r-sm: 6px;
+      --r-lg: 10px;
+
+      /* 阴影：极淡，只用于层次 */
+      --shadow-1: 0 1px 2px rgba(16, 24, 40, .04);
+      --shadow-2: 0 2px 8px rgba(16, 24, 40, .06);
+      --shadow-3: 0 6px 18px rgba(16, 24, 40, .08);
+
+      /* 覆盖 Bootstrap 圆角，让表单/按钮同步 */
+      --bs-border-radius: 8px;
+      --bs-border-radius-sm: 6px;
+      --bs-border-radius-lg: 10px;
+      --bs-body-color: #333333;
     }
+
     body {
-      font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
-      color: var(--ink);
-      /* 更浓一点的蓝白渐变底色 */
-      background:
-        radial-gradient(circle at 15% 10%, rgba(22, 119, 255, .12) 0, transparent 32%),
-        radial-gradient(circle at 85% 20%, rgba(64, 150, 255, .14) 0, transparent 30%),
-        linear-gradient(180deg, #dcecff 0%, #eaf4ff 40%, #f8fbff 75%, #ffffff 100%);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      /* 柔和低对比渐变：从很浅的蓝灰过渡到白，不撞色 */
+      background: linear-gradient(180deg, #f3f7fd 0%, #f8fbfe 34%, #ffffff 68%);
+      background-attachment: fixed;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-    /* 全屏漂浮装饰（缓慢游动的半透明泡泡） */
+
+    /* ============ 背景动态：极轻的缓慢漂移，不抢戏 ============ */
     .bg-decor {
       position: fixed;
       inset: 0;
@@ -39,193 +68,368 @@
       position: absolute;
       display: block;
       border-radius: 50%;
-      background: linear-gradient(135deg, rgba(64, 150, 255, .16), rgba(105, 180, 255, .05));
-      animation: drift ease-in-out infinite alternate;
+      background: radial-gradient(circle at 30% 30%, rgba(47, 106, 217, .10), rgba(47, 106, 217, .02));
+      animation: drift 26s ease-in-out infinite alternate;
     }
-    .bg-decor .d1 { width: 220px; height: 220px; left: -60px;  top: 12%;  animation-duration: 16s; }
-    .bg-decor .d2 { width: 130px; height: 130px; left: 18%;   bottom: 8%;  animation-duration: 13s; animation-delay: -4s; }
-    .bg-decor .d3 { width: 320px; height: 320px; right: -100px; top: 30%;  animation-duration: 20s; animation-delay: -8s; }
-    .bg-decor .d4 { width: 90px;  height: 90px;  right: 22%;  top: 10%;   animation-duration: 11s; animation-delay: -2s; }
-    .bg-decor .d5 { width: 60px;  height: 60px;  left: 42%;   top: 55%;   animation-duration: 14s; animation-delay: -6s; }
-    .bg-decor .d6 { width: 170px; height: 170px; right: 8%;   bottom: 12%; animation-duration: 18s; animation-delay: -10s; }
-    .bg-decor .sq {
-      border-radius: 22%;
-      background: linear-gradient(135deg, rgba(22, 119, 255, .10), rgba(105, 180, 255, .04));
-    }
+    .bg-decor .d1 { width: 420px; height: 420px; left: -140px; top: 8%; }
+    .bg-decor .d2 { width: 300px; height: 300px; right: -90px; top: 26%; animation-duration: 32s; animation-delay: -10s; }
+    .bg-decor .d3 { width: 240px; height: 240px; left: 46%; bottom: -60px; animation-duration: 38s; animation-delay: -18s; }
     @keyframes drift {
-      0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
-      50%  { transform: translate(28px, -34px) rotate(10deg) scale(1.06); }
-      100% { transform: translate(-24px, 26px) rotate(-8deg) scale(.96); }
+      from { transform: translate3d(0, 0, 0); }
+      to   { transform: translate3d(26px, -22px, 0); }
     }
     @media (prefers-reduced-motion: reduce) {
       .bg-decor i { animation: none; }
     }
+
     main { flex: 1; }
-    /* 导航栏 */
+    .page-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+    @media (max-width: 575.98px) {
+      .page-wrap { padding: 20px 16px 40px; }
+    }
+
+    /* ============ 导航 ============ */
     .navbar-main {
-      background: rgba(255, 255, 255, .78);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 1px 12px rgba(22, 119, 255, .08);
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: saturate(180%) blur(12px);
+      border-bottom: 1px solid var(--line);
+      padding: 0;
+    }
+    .navbar-main .navbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
     }
     .navbar-main .navbar-brand {
-      color: var(--brand);
-      font-weight: 800;
-      letter-spacing: .5px;
-    }
-    .navbar-main .nav-link { color: #4a6485; font-weight: 500; }
-    .navbar-main .nav-link:hover { color: var(--brand); }
-    /* 按钮 */
-    .btn-brand {
-      background: linear-gradient(135deg, #4096ff, #1677ff);
-      color: #fff;
-      border: none;
-      border-radius: 999px;
-      box-shadow: 0 4px 14px rgba(22, 119, 255, .28);
-      transition: all .15s ease;
-    }
-    .btn-brand:hover {
-      background: linear-gradient(135deg, #1677ff, #0958d9);
-      color: #fff;
-      transform: translateY(-1px);
-    }
-    /* Hero：蓝白渐变、通透轻量 */
-    .hero {
-      background: linear-gradient(160deg, rgba(232, 243, 255, .9) 0%, rgba(240, 248, 255, .75) 55%, rgba(255, 255, 255, .9) 100%);
-      border: 1px solid rgba(22, 119, 255, .10);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       color: var(--ink);
-      border-radius: 24px;
-      padding: 52px 44px;
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(4px);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      text-decoration: none;
+      padding: 0;
+      margin: 0;
+      flex: none;
     }
-    .hero h1 { font-weight: 800; color: #0a2540; letter-spacing: .5px; }
-    .hero .lead-text { color: #4a6485; }
-    .hero .btn-light {
-      color: var(--brand-dark);
-      font-weight: 700;
-      background: #fff;
-      border: none;
-      box-shadow: 0 4px 16px rgba(22, 119, 255, .18);
+    .navbar-main .nav-link {
+      color: var(--text-2);
+      font-size: 14px;
+      font-weight: 400;
+      padding: 0;
+      transition: color .2s ease-out;
     }
-    .hero .btn-outline-light {
-      color: var(--brand);
-      border: 1.5px solid rgba(22, 119, 255, .35);
-      background: rgba(255, 255, 255, .6);
+    .navbar-main .nav-link:hover { color: var(--brand); }
+    .nav-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
-    .hero .btn-outline-light:hover { background: var(--brand-light); color: var(--brand-dark); }
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(64, 150, 255, .14), rgba(105, 180, 255, .06));
+    .nav-actions .btn { height: 34px; padding: 0 16px; font-size: 13.5px; }
+
+    /* ============ 按钮 ============ */
+    .btn {
+      border-radius: var(--r);
+      font-weight: 500;
+      font-size: 14px;
+      transition: background-color .2s ease-out, border-color .2s ease-out,
+                  color .2s ease-out, box-shadow .2s ease-out;
     }
-    .bubble.b1 { width: 210px; height: 210px; right: -40px; top: -60px; }
-    .bubble.b2 { width: 120px; height: 120px; right: 150px; bottom: -40px; }
-    .bubble.b3 { width: 44px; height: 44px; right: 70px; top: 44px; background: rgba(22, 119, 255, .18); }
-    /* 卡片 */
+    .btn-brand {
+      background: var(--brand);
+      border: 1px solid var(--brand);
+      color: #fff;
+      box-shadow: none;
+    }
+    .btn-brand:hover, .btn-brand:focus {
+      background: var(--brand-dark);
+      border-color: var(--brand-dark);
+      color: #fff;
+      box-shadow: none;
+    }
+    .btn-brand:disabled { background: #b9cdf0; border-color: #b9cdf0; color: #fff; }
+    .btn-ghost {
+      background: var(--surface);
+      border: 1px solid #d9dee6;
+      color: var(--text);
+    }
+    .btn-ghost:hover { background: #f7f9fc; border-color: #c6cede; color: var(--ink); }
+    .btn-outline-secondary {
+      border-color: #d9dee6;
+      color: var(--text-2);
+    }
+    .btn-outline-secondary:hover {
+      background: #f7f9fc;
+      border-color: #c6cede;
+      color: var(--ink);
+    }
+
+    /* ============ 卡片 ============ */
     .card-soft {
-      border: 1px solid rgba(22, 119, 255, .08);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, .85);
-      box-shadow: 0 4px 20px rgba(22, 119, 255, .06);
-      transition: transform .15s ease, box-shadow .15s ease;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-1);
     }
-    .card-soft:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 28px rgba(22, 119, 255, .12);
+    .card-soft.hoverable { transition: box-shadow .2s ease-out, transform .2s ease-out; }
+    .card-soft.hoverable:hover { box-shadow: var(--shadow-2); }
+
+    /* ============ 商品卡片（首页 / 详情页共用） ============ */
+    .product-card {
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: var(--shadow-2);
+      transition: transform .25s ease-out, box-shadow .25s ease-out, border-color .25s ease-out;
+      height: 100%;
     }
-    .feature-icon {
-      width: 48px; height: 48px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #e8f3ff, #f0f7ff);
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-3);
+      border-color: #dfe6f0;
+    }
+    .product-thumb {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: var(--line-soft);
+    }
+    .product-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform .35s ease-out;
+    }
+    .product-card:hover .product-thumb img { transform: scale(1.03); }
+    .thumb-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #c3cedd;
+      font-size: 34px;
+    }
+    .product-title {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .price-symbol { color: var(--ink); font-weight: 600; font-size: 12px; }
+    .price { color: var(--ink); font-weight: 600; font-size: 18px; letter-spacing: -.01em; }
+    .original-price { color: var(--text-3); font-size: 12px; text-decoration: line-through; margin-left: 5px; }
+    .meta-text { color: var(--text-3); font-size: 12px; }
+    .condition-tag {
+      display: inline-block;
+      background: #f4f7fa;
+      color: #4a5058;
+      font-size: 11.5px;
+      font-weight: 400;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      line-height: 1.5;
+    }
+
+    /* ============ 分类标签：下划线式，收窄不臃肿 ============ */
+    .cat-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 26px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0;
+    }
+    .cat-tab {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 0 11px;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-2);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color .2s ease-out, border-color .2s ease-out;
+    }
+    .cat-tab:hover { color: var(--ink); }
+    .cat-tab.active {
+      color: var(--brand);
+      font-weight: 500;
+      border-bottom-color: var(--brand);
+    }
+
+    /* ============ 表单 ============ */
+    .form-control, .form-select {
+      border-radius: var(--r);
+      border-color: #dfe4ec;
+      font-size: 14px;
+      color: var(--text);
+      padding: 9px 12px;
+    }
+    .form-control::placeholder { color: #a8b0bd; }
+    .form-control:focus, .form-select:focus {
+      border-color: #a9c4ee;
+      box-shadow: 0 0 0 3px rgba(47, 106, 217, .10);
+    }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .form-text { font-size: 12px; color: var(--text-3); }
+
+    /* 登录 / 注册卡片 */
+    .auth-card {
+      max-width: 420px;
+      margin: 40px auto 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-2);
+    }
+    .auth-card .card-body { padding: 36px 32px; }
+    .auth-card h4 { font-size: 20px; font-weight: 500; color: var(--ink); }
+
+    /* 通用小图标容器（线性图标，统一浅底） */
+    .icon-box {
+      width: 40px; height: 40px;
+      border-radius: var(--r);
+      background: var(--brand-light);
       color: var(--brand);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      border: 1px solid rgba(22, 119, 255, .10);
+      font-size: 18px;
+      flex: none;
     }
-    /* 表单卡片 */
-    .auth-card {
-      max-width: 460px;
-      margin: 36px auto 0;
-      border: 1px solid rgba(22, 119, 255, .08);
-      border-radius: 22px;
-      background: rgba(255, 255, 255, .92);
-      box-shadow: 0 12px 40px rgba(22, 119, 255, .10);
+    /* 兼容旧标记：统一为线性图标 + 浅底，去掉大圆角与渐变 */
+    .feature-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--r);
+      background: var(--brand-light);
+      color: var(--brand);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: none;
+      flex: none;
     }
-    .auth-card .card-body { padding: 40px 36px; }
-    .form-control { border-radius: 12px; }
-    .form-control:focus {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 .25rem rgba(22, 119, 255, .12);
+
+    /* 标题层级：只有 500 字重 */
+    .section-title {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: .01em;
+      margin: 0;
     }
-    /* 页脚：轻量浅色 */
+    .section-sub { font-size: 13px; color: var(--text-3); margin: 4px 0 0; }
+    h4, h5, h6 { color: var(--ink); }
+
+    /* ============ 页脚：极简 ============ */
     .site-footer {
-      background: rgba(240, 247, 255, .85);
-      border-top: 1px solid rgba(22, 119, 255, .08);
-      color: var(--ink-soft);
-      padding: 24px 0;
-      font-size: 14px;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, .7);
+      padding: 22px 0;
+      font-size: 12.5px;
+      color: var(--text-3);
     }
-    .site-footer a { color: var(--brand); text-decoration: none; font-weight: 600; }
+    .site-footer .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .site-footer a { color: var(--text-3); text-decoration: none; transition: color .2s ease-out; }
+    .site-footer a:hover { color: var(--brand); }
+    .site-footer .dot { margin: 0 8px; color: #d5dae2; }
+
+    /* 提示条 */
+    .alert { border-radius: var(--r); font-size: 13.5px; }
   </style>
 </head>
 <body>
-<!-- 漂浮背景装饰 -->
+<!-- 背景：极轻的柔光漂移 -->
 <div class="bg-decor" aria-hidden="true">
   <i class="d1"></i><i class="d2"></i><i class="d3"></i>
-  <i class="d4"></i><i class="d5 sq"></i><i class="d6 sq"></i>
 </div>
-<nav class="navbar navbar-expand navbar-main sticky-top py-3">
-  <div class="container">
-    <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
-      <svg width="36" height="32" viewBox="0 0 36 32" role="img" aria-label="小集头像">
-        <rect x="4" y="9" width="28" height="21" rx="7" fill="#f2d9a4"/>
-        <path d="M8 11 Q12 6 16 10 Q20 14 24 9 Q28 5 31 9" fill="none" stroke="#a87f4a" stroke-width="2.5" stroke-linecap="round"/>
-        <circle cx="14" cy="19" r="3.4" fill="#2f2a1e"/>
-        <circle cx="23" cy="19" r="3.4" fill="#2f2a1e"/>
-        <circle cx="15.2" cy="17.8" r="1.1" fill="#ffffff"/>
-        <circle cx="24.2" cy="17.8" r="1.1" fill="#ffffff"/>
-        <circle cx="31" cy="27" r="4" fill="#52c41a"/>
-        <text x="31" y="30.5" text-anchor="middle" font-size="5.5" fill="#ffffff">&#x267b;</text>
+
+<nav class="navbar navbar-main sticky-top">
+  <div class="navbar-inner">
+    <a class="navbar-brand" href="{% url 'home' %}">
+      <!-- 品牌图形：线性纸箱（单一主色，无彩色点缀） -->
+      <svg width="30" height="27" viewBox="0 0 30 27" role="img" aria-label="闲小集">
+        <rect x="3.5" y="7.5" width="23" height="16" rx="3" fill="#eff4fd" stroke="#2f6ad9" stroke-width="1.5"/>
+        <path d="M3.5 11.5h23" stroke="#2f6ad9" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="11.5" cy="17" r="1.5" fill="#2f6ad9"/>
+        <circle cx="18.5" cy="17" r="1.5" fill="#2f6ad9"/>
+        <path d="M13 20.6q2 1.4 4 0" fill="none" stroke="#2f6ad9" stroke-width="1.4" stroke-linecap="round"/>
       </svg>
       闲小集
     </a>
-    <div class="navbar-nav ms-auto align-items-center gap-1">
+
+    <a class="nav-link d-none d-md-inline" href="{% url 'home' %}">逛集市</a>
+    {% if user.is_authenticated %}
+      <a class="nav-link d-none d-md-inline" href="{% url 'my_products' %}">我的闲置</a>
+      <a class="nav-link d-none d-md-inline" href="{% url 'profile' %}">个人中心</a>
+    {% endif %}
+
+    <div class="nav-actions">
       {% if user.is_authenticated %}
-        <a class="nav-link" href="{% url 'home' %}"><i class="bi bi-shop me-1"></i>逛逛</a>
-        <a class="nav-link" href="{% url 'my_products' %}"><i class="bi bi-box-seam me-1"></i>我的闲置</a>
-        <a class="nav-link" href="{% url 'profile' %}"><i class="bi bi-person me-1"></i>个人中心</a>
-        <a class="btn btn-brand btn-sm ms-2 px-3" href="{% url 'product_create' %}">
-          <i class="bi bi-plus-lg me-1"></i>发布闲置
-        </a>
-        <form method="post" action="{% url 'logout' %}" class="d-inline ms-2">
+        <a class="nav-link d-none d-sm-inline" href="{% url 'product_create' %}">发布闲置</a>
+        <a class="btn btn-brand" href="{% url 'product_create' %}">＋ 发布</a>
+        <form method="post" action="{% url 'logout' %}" class="d-inline">
           {% csrf_token %}
-          <button class="btn btn-outline-secondary btn-sm rounded-pill px-3">退出</button>
+          <button class="btn btn-link nav-link p-0 text-decoration-none" style="color:var(--text-3);font-size:13.5px;">退出</button>
         </form>
       {% else %}
-        <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>登录</a>
-        <a class="btn btn-brand btn-sm ms-2 px-3" href="{% url 'register' %}">免费注册</a>
+        <a class="nav-link" href="{% url 'login' %}">登录</a>
+        <a class="btn btn-brand" href="{% url 'register' %}">免费注册</a>
       {% endif %}
     </div>
   </div>
 </nav>
 
-<main class="container py-4" style="max-width: 960px;">
-  {% for message in messages %}
-    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-3">
-      {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  {% endfor %}
-  {% block content %}{% endblock %}
+<main>
+  <div class="page-wrap">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </div>
 </main>
 
 <footer class="site-footer mt-auto">
-  <div class="container d-flex flex-wrap justify-content-between align-items-center">
-    <span>闲小集 · 小集，帮闲置找到新主人的校园小纸箱 📦</span>
-    <span>由 <a href="https://github.com/songxufeng-Seanfin">songxufeng-Seanfin</a> 用 Django 构建 · 校园二手交易开源项目</span>
+  <div class="footer-inner">
+    <span>闲小集 · 让每一件闲置，连接每一位学生</span>
+    <span>
+      校园闲置交易平台
+      <span class="dot">·</span><a href="{% url 'home' %}">关于我们</a>
+      <span class="dot">·</span><a href="https://github.com/songxufeng-Seanfin" target="_blank" rel="noopener">GitHub</a>
+    </span>
   </div>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
