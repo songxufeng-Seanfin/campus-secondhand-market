@@ -8,40 +8,40 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    /* ============ 设计变量：全站唯一色彩与圆角来源 ============ */
+    /* ============ 设计变量：回归早期「校园集市」明快蓝风格 ============ */
     :root {
-      /* 主色：低饱和清蓝，全局只用这一个蓝 */
-      --brand: #2f6ad9;
-      --brand-dark: #2559b8;
-      --brand-light: #eff4fd;
-      --brand-line: #d8e4f8;
+      /* 主色：明快的集市蓝 */
+      --brand: #1677ff;
+      --brand-dark: #0958d9;
+      --brand-light: #e8f3ff;
+      --brand-line: #cfe4ff;
 
-      /* 中性色阶：只有灰梯队 */
-      --ink: #1f2329;
-      --text: #333333;
-      --text-2: #666666;
-      --text-3: #999999;
-      --line: #e9ecf1;
-      --line-soft: #f2f4f7;
+      /* 中性色阶 */
+      --ink: #0a2540;
+      --text: #33415c;
+      --text-2: #4a6485;
+      --text-3: #8fa3bd;
+      --line: #e6eef8;
+      --line-soft: #f2f7fd;
       --surface: #ffffff;
 
-      /* 圆角节奏：卡片 12 / 按钮 10 / 标签 6，不全部统一 */
-      --r: 12px;
-      --r-sm: 6px;
-      --r-lg: 12px;
-      --r-btn: 10px;
-      --r-tag: 6px;
+      /* 圆角：大圆角的温柔集市风 */
+      --r: 16px;
+      --r-sm: 10px;
+      --r-lg: 24px;
+      --r-btn: 999px;
+      --r-tag: 999px;
 
-      /* 阴影：极淡，只用于层次 */
-      --shadow-1: 0 1px 2px rgba(16, 24, 40, .04);
-      --shadow-2: 0 2px 8px rgba(16, 24, 40, .06);
-      --shadow-3: 0 6px 18px rgba(16, 24, 40, .08);
+      /* 阴影：带一点蓝调的柔和光 */
+      --shadow-1: 0 2px 10px rgba(22, 119, 255, .06);
+      --shadow-2: 0 6px 18px rgba(22, 119, 255, .10);
+      --shadow-3: 0 10px 26px rgba(22, 119, 255, .16);
 
-      /* 覆盖 Bootstrap 圆角，让表单/按钮同步 */
-      --bs-border-radius: 10px;
-      --bs-border-radius-sm: 6px;
-      --bs-border-radius-lg: 12px;
-      --bs-body-color: #333333;
+      /* 覆盖 Bootstrap 圆角 */
+      --bs-border-radius: 12px;
+      --bs-border-radius-sm: 10px;
+      --bs-border-radius-lg: 16px;
+      --bs-body-color: #33415c;
     }
 
     body {
@@ -50,8 +50,8 @@
       font-size: 14px;
       color: var(--text);
       -webkit-font-smoothing: antialiased;
-      /* 柔和低对比渐变：从很浅的蓝灰过渡到白，不撞色 */
-      background: linear-gradient(180deg, #f3f7fd 0%, #f8fbfe 34%, #ffffff 68%);
+      /* 清爽的蓝白渐变 */
+      background: linear-gradient(180deg, #eaf4ff 0%, #f5faff 40%, #ffffff 100%);
       background-attachment: fixed;
       min-height: 100vh;
       display: flex;
@@ -70,7 +70,7 @@
       position: absolute;
       display: block;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, rgba(47, 106, 217, .10), rgba(47, 106, 217, .02));
+      background: radial-gradient(circle at 30% 30%, rgba(22, 119, 255, .14), rgba(22, 119, 255, .03));
       animation: drift 26s ease-in-out infinite alternate;
     }
     .bg-decor .d1 { width: 420px; height: 420px; left: -140px; top: 8%; }
@@ -88,48 +88,49 @@
     /* 导航 / 主体 / 页脚统一提到气泡之上 */
     .navbar-main, main, .site-footer { position: relative; z-index: 1; }
     .page-wrap {
-      max-width: 1200px;
+      max-width: 1040px;
       margin: 0 auto;
-      padding: 26px 24px 56px;
+      padding: 28px 20px 56px;
     }
     @media (max-width: 575.98px) {
-      .page-wrap { padding: 16px 16px 36px; }
+      .page-wrap { padding: 18px 14px 40px; }
     }
 
-    /* ============ 导航 ============ */
+    /* ============ 导航：白色毛玻璃 + 品牌蓝 ============ */
     .navbar-main {
-      background: rgba(255, 255, 255, .92);
-      backdrop-filter: saturate(180%) blur(12px);
-      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .8);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 1px 12px rgba(22, 119, 255, .08);
+      border-bottom: none;
       padding: 0;
     }
     .navbar-main .navbar-inner {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1040px;
       margin: 0 auto;
-      padding: 0 24px;
-      height: 62px;
+      padding: 0 20px;
+      height: 64px;
       display: flex;
       align-items: center;
-      gap: 28px;
+      gap: 22px;
     }
     .navbar-main .navbar-brand {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      color: var(--ink);
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: .02em;
+      gap: 9px;
+      color: var(--brand);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: .03em;
       text-decoration: none;
       padding: 0;
       margin: 0;
       flex: none;
     }
     .navbar-main .nav-link {
-      color: var(--text-2);
+      color: #4a6485;
       font-size: 14px;
-      font-weight: 400;
+      font-weight: 500;
       padding: 0;
       transition: color .2s ease-out;
     }
@@ -151,41 +152,43 @@
     .nav-text-link:hover { color: var(--brand); }
     .nav-text-link.is-brand { color: var(--brand); font-weight: 500; }
 
-    /* ============ 按钮 ============ */
+    /* ============ 按钮：胶囊 + 渐变，回到集市的活泼感 ============ */
     .btn {
       border-radius: var(--r-btn);
-      font-weight: 500;
+      font-weight: 600;
       font-size: 14px;
-      transition: background-color .2s ease-out, border-color .2s ease-out,
-                  color .2s ease-out, box-shadow .2s ease-out;
+      transition: background-color .15s ease, transform .15s ease,
+                  box-shadow .15s ease, color .15s ease, border-color .15s ease;
     }
     .btn-brand {
-      background: var(--brand);
-      border: 1px solid var(--brand);
+      background: linear-gradient(135deg, #4096ff, #1677ff);
+      border: none;
       color: #fff;
-      box-shadow: none;
+      box-shadow: 0 4px 14px rgba(22, 119, 255, .28);
     }
     .btn-brand:hover, .btn-brand:focus {
-      background: var(--brand-dark);
-      border-color: var(--brand-dark);
+      background: linear-gradient(135deg, #1677ff, #0958d9);
+      border-color: transparent;
       color: #fff;
-      box-shadow: none;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(22, 119, 255, .32);
     }
-    .btn-brand:disabled { background: #b9cdf0; border-color: #b9cdf0; color: #fff; }
+    .btn-brand:disabled { background: #91caff; box-shadow: none; color: #fff; }
     .btn-ghost {
       background: var(--surface);
-      border: 1px solid #d9dee6;
-      color: var(--text);
+      border: 1.5px solid rgba(22, 119, 255, .35);
+      color: var(--brand);
     }
-    .btn-ghost:hover { background: #f7f9fc; border-color: #c6cede; color: var(--ink); }
+    .btn-ghost:hover { background: var(--brand-light); border-color: var(--brand); color: var(--brand-dark); }
     .btn-outline-secondary {
-      border-color: #d9dee6;
+      border-color: #d5e2f5;
       color: var(--text-2);
+      border-radius: var(--r-btn);
     }
     .btn-outline-secondary:hover {
-      background: #f7f9fc;
-      border-color: #c6cede;
-      color: var(--ink);
+      background: var(--brand-light);
+      border-color: var(--brand);
+      color: var(--brand-dark);
     }
 
     /* ============ 卡片 ============ */
@@ -198,92 +201,100 @@
     .card-soft.hoverable { transition: box-shadow .2s ease-out, transform .2s ease-out; }
     .card-soft.hoverable:hover { box-shadow: var(--shadow-2); }
 
-    /* ============ 商品卡片（首页 / 详情页共用） ============ */
+    /* ============ 商品卡片：白卡 + 软阴影 + 图片微缩放 ============ */
+    .card-soft {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-1);
+    }
+    .card-soft.hoverable { transition: box-shadow .2s ease, transform .2s ease; }
+    .card-soft.hoverable:hover { box-shadow: var(--shadow-2); }
+
     .product-card {
       display: block;
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--r);
       overflow: hidden;
-      box-shadow: var(--shadow-2);
-      transition: transform .25s ease-out, box-shadow .25s ease-out, border-color .25s ease-out;
+      box-shadow: var(--shadow-1);
+      transition: transform .2s ease, box-shadow .2s ease;
       height: 100%;
     }
     .product-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px);
       box-shadow: var(--shadow-3);
-      border-color: #dfe6f0;
     }
     .product-thumb {
       position: relative;
       aspect-ratio: 4 / 3;
       overflow: hidden;
-      background: var(--line-soft);
+      background: linear-gradient(135deg, #eef6ff, #e2efff);
     }
     .product-thumb img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: transform .3s ease;
     }
+    .product-card:hover .product-thumb img { transform: scale(1.05); }
     .thumb-placeholder {
       width: 100%;
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #c3cedd;
-      font-size: 34px;
+      font-size: 42px;
     }
     .product-title {
-      font-size: 14px;
-      font-weight: 400;
-      color: var(--text);
-      line-height: 1.5;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.4;
     }
-    .price-symbol { color: var(--ink); font-weight: 600; font-size: 12px; }
-    .price { color: var(--ink); font-weight: 600; font-size: 18px; letter-spacing: -.01em; }
-    .original-price { color: var(--text-3); font-size: 12px; text-decoration: line-through; margin-left: 5px; }
+    .price-symbol { color: #ff4d4f; font-weight: 700; font-size: 13px; }
+    .price { color: #ff4d4f; font-weight: 800; font-size: 20px; }
+    .original-price { color: #9aa8bb; font-size: 12px; text-decoration: line-through; margin-left: 4px; }
     .meta-text { color: var(--text-3); font-size: 12px; }
     .condition-tag {
       display: inline-block;
-      background: #f4f7fa;
-      color: #4a5058;
+      background: var(--brand-light);
+      color: var(--brand-dark);
       font-size: 11.5px;
-      font-weight: 400;
-      padding: 2px 7px;
+      font-weight: 500;
+      padding: 2px 9px;
       border-radius: var(--r-tag);
       white-space: nowrap;
       line-height: 1.6;
     }
 
-    /* ============ 分类标签：胶囊式，选中态浅蓝底 ============ */
+    /* ============ 分类胶囊：emoji + 圆角药丸 ============ */
     .cat-tabs {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 4px 6px;
+      gap: 8px;
     }
     .cat-tab {
       display: inline-flex;
       align-items: center;
-      padding: 6px 12px;
-      font-size: 13.5px;
-      font-weight: 400;
-      color: var(--text-2);
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #3d5a80;
       text-decoration: none;
       border-radius: var(--r-tag);
-      transition: color .2s ease-out, background-color .2s ease-out;
+      background: rgba(255, 255, 255, .85);
+      border: 1.5px solid rgba(22, 119, 255, .12);
+      transition: all .15s ease;
     }
-    .cat-tab i { font-size: 13px; opacity: .8; }
-    .cat-tab:hover { color: var(--ink); background: #f5f8fd; }
+    .cat-tab:hover { color: var(--brand-dark); background: var(--brand-light); border-color: var(--brand); }
     .cat-tab.active {
-      color: var(--brand);
-      font-weight: 500;
-      background: var(--brand-light);
+      color: #fff;
+      background: linear-gradient(135deg, #4096ff, #1677ff);
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(22, 119, 255, .28);
     }
 
     /* ============ 表单 ============ */
@@ -314,29 +325,18 @@
     .auth-card .card-body { padding: 36px 32px; }
     .auth-card h4 { font-size: 20px; font-weight: 500; color: var(--ink); }
 
-    /* 通用小图标容器（线性图标，统一浅底） */
-    .icon-box {
-      width: 40px; height: 40px;
-      border-radius: var(--r);
-      background: var(--brand-light);
-      color: var(--brand);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex: none;
-    }
-    /* 兼容旧标记：统一为线性图标 + 浅底，去掉大圆角与渐变 */
+    /* 通用小图标容器：渐变蓝底白图标，回到早期风格 */
+    .icon-box,
     .feature-icon {
-      width: 40px; height: 40px;
-      border-radius: var(--r);
-      background: var(--brand-light);
-      color: var(--brand);
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4096ff, #1677ff);
+      color: #fff;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      border: none;
+      font-size: 19px;
+      box-shadow: 0 4px 12px rgba(22, 119, 255, .22);
       flex: none;
     }
 
@@ -351,23 +351,25 @@
     .section-sub { font-size: 13px; color: var(--text-3); margin: 4px 0 0; }
     h4, h5, h6 { color: var(--ink); }
 
-    /* ============ 页脚：矮、静、居中，给页面收尾 ============ */
+    /* ============ 页脚：恢复早期的轻快双栏 ============ */
     .site-footer {
       border-top: 1px solid var(--line);
-      background: rgba(255, 255, 255, .66);
-      padding: 26px 20px 28px;
-      text-align: center;
-      font-size: 12.5px;
+      background: rgba(255, 255, 255, .85);
+      padding: 18px 20px;
+      font-size: 13px;
       color: var(--text-3);
     }
-    .site-footer .footer-name {
-      margin: 0 0 7px;
-      font-size: 13px;
-      color: #8b929c;
-      letter-spacing: .02em;
+    .site-footer .footer-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 24px;
+      justify-content: space-between;
+      align-items: center;
     }
-    .site-footer .footer-links { margin: 0; color: #a8b0bd; }
-    .site-footer .footer-links i { font-style: normal; margin: 0 9px; color: #d8dde5; }
+    .site-footer a { color: var(--brand); text-decoration: none; font-weight: 600; }
+    .site-footer a:hover { color: var(--brand-dark); }
 
     /* 提示条 */
     .alert { border-radius: var(--r); font-size: 13.5px; }
@@ -382,13 +384,20 @@
 <nav class="navbar navbar-main sticky-top">
   <div class="navbar-inner">
     <a class="navbar-brand" href="{% url 'home' %}">
-      <!-- 品牌图形：线性纸箱（单一主色，无彩色点缀） -->
-      <svg width="30" height="27" viewBox="0 0 30 27" role="img" aria-label="闲小集">
-        <rect x="3.5" y="7.5" width="23" height="16" rx="3" fill="#eff4fd" stroke="#2f6ad9" stroke-width="1.5"/>
-        <path d="M3.5 11.5h23" stroke="#2f6ad9" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="11.5" cy="17" r="1.5" fill="#2f6ad9"/>
-        <circle cx="18.5" cy="17" r="1.5" fill="#2f6ad9"/>
-        <path d="M13 20.6q2 1.4 4 0" fill="none" stroke="#2f6ad9" stroke-width="1.4" stroke-linecap="round"/>
+      <!-- 品牌图形：蓝色渐变圆角方块 + 白色纸箱笑脸 -->
+      <svg width="34" height="34" viewBox="0 0 34 34" role="img" aria-label="闲小集">
+        <defs>
+          <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#4096ff"/>
+            <stop offset="1" stop-color="#1677ff"/>
+          </linearGradient>
+        </defs>
+        <rect width="34" height="34" rx="9" fill="url(#brandGrad)"/>
+        <rect x="8" y="12" width="18" height="13" rx="3" fill="#ffffff" opacity=".96"/>
+        <path d="M8 16.5h18" stroke="#1677ff" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="13" cy="21" r="1.4" fill="#1677ff"/>
+        <circle cx="21" cy="21" r="1.4" fill="#1677ff"/>
+        <path d="M14.6 23.4q2.4 1.7 4.8 0" fill="none" stroke="#1677ff" stroke-width="1.3" stroke-linecap="round"/>
       </svg>
       闲小集
     </a>
@@ -402,14 +411,14 @@
     <div class="nav-actions">
       {% if user.is_authenticated %}
         <a class="nav-link d-none d-sm-inline" href="{% url 'product_create' %}">发布闲置</a>
-        <a class="btn btn-brand" href="{% url 'product_create' %}">＋ 发布</a>
+        <a class="btn btn-brand btn-sm px-3" href="{% url 'product_create' %}"><i class="bi bi-plus-lg me-1"></i>发布闲置</a>
         <form method="post" action="{% url 'logout' %}" class="d-inline">
           {% csrf_token %}
           <button class="btn btn-link nav-link p-0 text-decoration-none" style="color:var(--text-3);font-size:13.5px;">退出</button>
         </form>
       {% else %}
-        <a class="nav-text-link" href="{% url 'login' %}">登录</a>
-        <a class="nav-text-link is-brand" href="{% url 'register' %}">免费注册</a>
+        <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>登录</a>
+        <a class="btn btn-brand btn-sm px-3 ms-1" href="{% url 'register' %}">免费注册</a>
       {% endif %}
     </div>
   </div>
@@ -428,8 +437,14 @@
 </main>
 
 <footer class="site-footer mt-auto">
-  <p class="footer-name">闲小集・校园闲置交易平台</p>
-  <p class="footer-links">学生认证<i>|</i>交易须知<i>|</i>联系我们</p>
+  <div class="footer-inner">
+    <span>闲小集 · 小集，帮闲置找到新主人的校园小纸箱 📦</span>
+    <span>
+      校园闲置交易平台
+      <span style="margin:0 8px;color:#cfe0f5;">·</span><a href="{% url 'home' %}">逛集市</a>
+      <span style="margin:0 8px;color:#cfe0f5;">·</span><a href="https://github.com/songxufeng-Seanfin" target="_blank" rel="noopener">GitHub</a>
+    </span>
+  </div>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
