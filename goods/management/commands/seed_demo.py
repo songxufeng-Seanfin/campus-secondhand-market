@@ -11,13 +11,27 @@
 
 from decimal import Decimal
 from io import BytesIO
+from pathlib import Path
 
 from django.core.files.base import ContentFile
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from accounts.models import User
 from goods.models import Category, Product
+
+# 商品 → 演示实拍图（放在 goods/seed_images/ 下，1120x840 的 4:3 图片）
+IMAGE_MAP = {
+    "高等数学 同济第七版 上下册": "gaoshu.jpg",
+    "iPad Air 4 64G 深空灰": "ipad.jpg",
+    "捷安特 通勤自行车 24 寸": "bike.jpg",
+    "宿舍桌面迷你冰箱": "fridge.jpg",
+    "雅马哈 F310 民谣吉他": "guitar.jpg",
+    "索尼 WH-1000XM4 头戴降噪耳机": "headphones.jpg",
+    "考研英语真题 + 词汇书（一整套）": "english.jpg",
+    "斯伯丁 7 号篮球": "basketball.jpg",
+}
 
 DEMO_PASSWORD = "xj" + "2026demo"
 
@@ -175,7 +189,7 @@ class Command(BaseCommand):
 
         # 2. 演示用户
         sellers = []
-        for idx, username in enumerate(["林同学", "陈同学", "周同学"]):
+        for idx, username in enumerate(["林晓雯", "陈嘉豪", "周子航"]):
             user, created = User.objects.get_or_create(
                 username=username, defaults={"phone": f"1380000000{idx}"}
             )
@@ -200,9 +214,16 @@ class Command(BaseCommand):
                 condition=condition,
                 location=location,
             )
-            product.image.save(
-                f"{slug}-{created_count}.jpg", _make_cover(title, slug), save=False
-            )
+            seed_img = Path(settings.BASE_DIR) / "goods" / "seed_images" / IMAGE_MAP.get(title, "")
+            if IMAGE_MAP.get(title) and seed_img.exists():
+                # 有实拍图就用实拍图（读二进制包装成 Django 的 ContentFile）
+                product.image.save(
+                    IMAGE_MAP[title], ContentFile(seed_img.read_bytes()), save=False
+                )
+            else:
+                product.image.save(
+                    f"{slug}-{created_count}.jpg", _make_cover(title, slug), save=False
+                )
             product.save()
             created_count += 1
 
