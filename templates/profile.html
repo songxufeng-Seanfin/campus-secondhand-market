@@ -35,9 +35,12 @@
   </div>
 </div>
 <div class="card card-soft">
-  <div class="card-body p-4 text-center text-muted">
-    <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
-    小集帮我发布的闲置（商品模块开发中）
+  <div class="card-body p-4 d-flex align-items-center justify-content-between">
+    <div>
+      <div class="fw-bold mb-1"><i class="bi bi-box-seam me-1"></i>我发布的闲置</div>
+      <p class="text-muted small mb-0">在售、已售出、已下架的商品都能在这里管理</p>
+    </div>
+    <a href="{% url 'my_products' %}" class="btn btn-brand btn-sm px-3">进入管理</a>
   </div>
 </div>
 {% endblock %}

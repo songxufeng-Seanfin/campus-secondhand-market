@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}编辑闲置{% else %}发布闲置{% endif %} - 闲小集{% endblock %}
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'home' %}" class="text-decoration-none small" style="color:var(--ink-soft);">
+    <i class="bi bi-arrow-left me-1"></i>返回集市
+  </a>
+</div>
+
+<div class="card card-soft" style="max-width:680px;margin:0 auto;">
+  <div class="card-body p-4 p-md-5">
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <span class="feature-icon" style="width:52px;height:52px;font-size:24px;">
+        <i class="bi bi-box-seam"></i>
+      </span>
+      <div>
+        <h4 class="mb-0 fw-bold">{% if is_edit %}编辑闲置{% else %}发布一件闲置{% endif %}</h4>
+        <p class="text-muted small mb-0">
+          {% if is_edit %}改完记得保存，同学看到的会立刻更新{% else %}说清楚是什么、几成新，成交会快很多{% endif %}
+        </p>
+      </div>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3 py-2 small">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold small">标题 <span class="text-danger">*</span></label>
+        {{ form.title }}
+        {% for e in form.title.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label fw-semibold small">分类 <span class="text-danger">*</span></label>
+          {{ form.category }}
+          {% for e in form.category.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-semibold small">成色 <span class="text-danger">*</span></label>
+          {{ form.condition }}
+          {% for e in form.condition.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label fw-semibold small">售价（元） <span class="text-danger">*</span></label>
+          {{ form.price }}
+          {% for e in form.price.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-semibold small">原价（元）</label>
+          {{ form.original_price }}
+          {% for e in form.original_price.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold small">封面图</label>
+        {{ form.image }}
+        <div class="form-text">支持 jpg / png，建议横向图，1:1 或 4:3 显示最好看。不传也行，会用分类图标占位。</div>
+        {% for e in form.image.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+        {% if is_edit and product.image %}
+          <div class="mt-2">
+            <img src="{{ product.image.url }}" alt="当前封面" style="max-width:160px;border-radius:12px;">
+            <div class="form-text">当前封面（重新上传会覆盖）</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold small">交易地点</label>
+        {{ form.location }}
+        <div class="form-text">选填。写清楚校区或地标，同学更容易约到你。</div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-semibold small">宝贝描述 <span class="text-danger">*</span></label>
+        {{ form.description }}
+        {% for e in form.description.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-brand px-4 py-2">
+          <i class="bi bi-check2-circle me-1"></i>{% if is_edit %}保存修改{% else %}立即发布{% endif %}
+        </button>
+        <a href="{% if is_edit %}{% url 'product_detail' product.pk %}{% else %}{% url 'home' %}{% endif %}"
+           class="btn btn-outline-secondary px-4 py-2 rounded-pill">取消</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

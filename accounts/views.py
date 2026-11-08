@@ -5,11 +5,6 @@ from django.shortcuts import redirect, render
 from .forms import RegisterForm
 
 
-def home(request):
-    """首页：登录后显示欢迎信息，未登录也能浏览（下一模块在这里挂商品列表）。"""
-    return render(request, "home.html")
-
-
 def register(request):
     """用户注册：表单校验通过后自动登录并跳转首页。"""
     if request.method == "POST":

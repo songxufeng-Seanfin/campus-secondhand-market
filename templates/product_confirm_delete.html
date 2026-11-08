@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}删除确认 - 闲小集{% endblock %}
+{% block content %}
+<div class="card card-soft" style="max-width:480px;margin:48px auto;">
+  <div class="card-body p-4 text-center">
+    <div style="font-size:42px;">🗑️</div>
+    <h5 class="fw-bold mt-3 mb-2">确定删除这件闲置吗？</h5>
+    <p class="text-muted small mb-4">
+      「{{ product.title }}」删除后无法恢复，图片也会一起清理掉。
+    </p>
+    <form method="post" class="d-flex gap-2 justify-content-center">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger px-4 rounded-pill">确认删除</button>
+      <a href="{% url 'my_products' %}" class="btn btn-outline-secondary px-4 rounded-pill">取消</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
