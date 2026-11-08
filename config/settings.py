@@ -2,9 +2,14 @@
 Django settings for config project.
 """
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 数据目录：线上通过 XJ_DATA_DIR 指向「发布目录之外」的持久目录，
+# 这样重新发布（覆盖源码目录）时，用户数据与上传的图片不会被冲掉。
+DATA_DIR = Path(os.environ.get("XJ_DATA_DIR") or BASE_DIR)
 
 SECRET_KEY = 'django-insecure-_hy(+)%&1wcs3_80kuyxb4whdj%xwxxp23uqy31i63258fohut'
 
@@ -65,7 +70,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
     }
 }
 
@@ -91,6 +96,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = DATA_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
