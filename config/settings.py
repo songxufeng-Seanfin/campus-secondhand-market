@@ -12,6 +12,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# 站点部署在反向代理后面，浏览器发来的 Origin 是公网域名，
+# 必须显式加入受信任来源，否则所有 POST（登录/注册/下单）都会被 CSRF 拦截
+CSRF_TRUSTED_ORIGINS = [
+    'https://xianxiaoji-market.app.workbuddy.host',
+]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
