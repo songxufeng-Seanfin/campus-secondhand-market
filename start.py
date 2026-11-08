@@ -20,6 +20,11 @@ def main() -> None:
         [sys.executable, "manage.py", "migrate", "--noinput"],
         check=False,
     )
+    # 演示数据幂等补齐：新沙箱/空库也能保证首页有商品可逛
+    subprocess.run(
+        [sys.executable, "manage.py", "seed_demo"],
+        check=False,
+    )
     os.execv(
         sys.executable,
         [sys.executable, "manage.py", "runserver", f"0.0.0.0:{PORT}", "--noreload"],

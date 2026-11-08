@@ -77,10 +77,15 @@ def home(request):
 
 
 def product_detail(request, pk):
-    """商品详情：浏览量 +1 用 F 表达式在数据库层自增，避免并发丢更新。"""
-    product = get_object_or_404(
-        Product.objects.select_related("seller", "category"), pk=pk
-    )
+    """商品详情：浏览量 +1 用 F 表达式在数据库层自增，避免并发丢更新。
+
+    商品不存在（已删除 / 旧链接）时友好跳回首页，避免直接抛 404 错误页。
+    """
+    try:
+        product = Product.objects.select_related("seller", "category").get(pk=pk)
+    except Product.DoesNotExist:
+        messages.info(request, "这件闲置不存在或已被删除，看看其他好物吧")
+        return redirect("home")
     Product.objects.filter(pk=pk).update(views=F("views") + 1)
     product.refresh_from_db(fields=["views"])
 
