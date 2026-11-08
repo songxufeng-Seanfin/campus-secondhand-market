@@ -25,10 +25,12 @@
       --line-soft: #f2f4f7;
       --surface: #ffffff;
 
-      /* 圆角：全站统一，禁止大圆角 */
-      --r: 8px;
+      /* 圆角节奏：卡片 12 / 按钮 10 / 标签 6，不全部统一 */
+      --r: 12px;
       --r-sm: 6px;
-      --r-lg: 10px;
+      --r-lg: 12px;
+      --r-btn: 10px;
+      --r-tag: 6px;
 
       /* 阴影：极淡，只用于层次 */
       --shadow-1: 0 1px 2px rgba(16, 24, 40, .04);
@@ -36,9 +38,9 @@
       --shadow-3: 0 6px 18px rgba(16, 24, 40, .08);
 
       /* 覆盖 Bootstrap 圆角，让表单/按钮同步 */
-      --bs-border-radius: 8px;
+      --bs-border-radius: 10px;
       --bs-border-radius-sm: 6px;
-      --bs-border-radius-lg: 10px;
+      --bs-border-radius-lg: 12px;
       --bs-body-color: #333333;
     }
 
@@ -60,9 +62,9 @@
     .bg-decor {
       position: fixed;
       inset: 0;
-      z-index: -1;
+      z-index: 0;          /* 氛围层在最底，内容层永远压在上面 */
       overflow: hidden;
-      pointer-events: none;
+      pointer-events: none; /* 不遮挡任何交互 */
     }
     .bg-decor i {
       position: absolute;
@@ -83,13 +85,15 @@
     }
 
     main { flex: 1; }
+    /* 导航 / 主体 / 页脚统一提到气泡之上 */
+    .navbar-main, main, .site-footer { position: relative; z-index: 1; }
     .page-wrap {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 32px 24px 64px;
+      padding: 26px 24px 56px;
     }
     @media (max-width: 575.98px) {
-      .page-wrap { padding: 20px 16px 40px; }
+      .page-wrap { padding: 16px 16px 36px; }
     }
 
     /* ============ 导航 ============ */
@@ -100,6 +104,7 @@
       padding: 0;
     }
     .navbar-main .navbar-inner {
+      width: 100%;
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 24px;
@@ -133,13 +138,22 @@
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 18px;
     }
     .nav-actions .btn { height: 34px; padding: 0 16px; font-size: 13.5px; }
+    /* 右上角登录入口：纯文字，不抢视觉 */
+    .nav-text-link {
+      color: var(--text-2);
+      font-size: 13.5px;
+      text-decoration: none;
+      transition: color .2s ease-out;
+    }
+    .nav-text-link:hover { color: var(--brand); }
+    .nav-text-link.is-brand { color: var(--brand); font-weight: 500; }
 
     /* ============ 按钮 ============ */
     .btn {
-      border-radius: var(--r);
+      border-radius: var(--r-btn);
       font-weight: 500;
       font-size: 14px;
       transition: background-color .2s ease-out, border-color .2s ease-out,
@@ -211,9 +225,7 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform .35s ease-out;
     }
-    .product-card:hover .product-thumb img { transform: scale(1.03); }
     .thumb-placeholder {
       width: 100%;
       height: 100%;
@@ -242,39 +254,36 @@
       color: #4a5058;
       font-size: 11.5px;
       font-weight: 400;
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 2px 7px;
+      border-radius: var(--r-tag);
       white-space: nowrap;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
-    /* ============ 分类标签：下划线式，收窄不臃肿 ============ */
+    /* ============ 分类标签：胶囊式，选中态浅蓝底 ============ */
     .cat-tabs {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 4px 26px;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 0;
+      gap: 4px 6px;
     }
     .cat-tab {
-      position: relative;
       display: inline-flex;
       align-items: center;
-      padding: 9px 0 11px;
-      font-size: 14px;
+      padding: 6px 12px;
+      font-size: 13.5px;
       font-weight: 400;
       color: var(--text-2);
       text-decoration: none;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: color .2s ease-out, border-color .2s ease-out;
+      border-radius: var(--r-tag);
+      transition: color .2s ease-out, background-color .2s ease-out;
     }
-    .cat-tab:hover { color: var(--ink); }
+    .cat-tab i { font-size: 13px; opacity: .8; }
+    .cat-tab:hover { color: var(--ink); background: #f5f8fd; }
     .cat-tab.active {
       color: var(--brand);
       font-weight: 500;
-      border-bottom-color: var(--brand);
+      background: var(--brand-light);
     }
 
     /* ============ 表单 ============ */
@@ -342,27 +351,23 @@
     .section-sub { font-size: 13px; color: var(--text-3); margin: 4px 0 0; }
     h4, h5, h6 { color: var(--ink); }
 
-    /* ============ 页脚：极简 ============ */
+    /* ============ 页脚：矮、静、居中，给页面收尾 ============ */
     .site-footer {
       border-top: 1px solid var(--line);
-      background: rgba(255, 255, 255, .7);
-      padding: 22px 0;
+      background: rgba(255, 255, 255, .66);
+      padding: 26px 20px 28px;
+      text-align: center;
       font-size: 12.5px;
       color: var(--text-3);
     }
-    .site-footer .footer-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px 24px;
-      justify-content: space-between;
-      align-items: center;
+    .site-footer .footer-name {
+      margin: 0 0 7px;
+      font-size: 13px;
+      color: #8b929c;
+      letter-spacing: .02em;
     }
-    .site-footer a { color: var(--text-3); text-decoration: none; transition: color .2s ease-out; }
-    .site-footer a:hover { color: var(--brand); }
-    .site-footer .dot { margin: 0 8px; color: #d5dae2; }
+    .site-footer .footer-links { margin: 0; color: #a8b0bd; }
+    .site-footer .footer-links i { font-style: normal; margin: 0 9px; color: #d8dde5; }
 
     /* 提示条 */
     .alert { border-radius: var(--r); font-size: 13.5px; }
@@ -403,8 +408,8 @@
           <button class="btn btn-link nav-link p-0 text-decoration-none" style="color:var(--text-3);font-size:13.5px;">退出</button>
         </form>
       {% else %}
-        <a class="nav-link" href="{% url 'login' %}">登录</a>
-        <a class="btn btn-brand" href="{% url 'register' %}">免费注册</a>
+        <a class="nav-text-link" href="{% url 'login' %}">登录</a>
+        <a class="nav-text-link is-brand" href="{% url 'register' %}">免费注册</a>
       {% endif %}
     </div>
   </div>
@@ -423,14 +428,8 @@
 </main>
 
 <footer class="site-footer mt-auto">
-  <div class="footer-inner">
-    <span>闲小集 · 让每一件闲置，连接每一位学生</span>
-    <span>
-      校园闲置交易平台
-      <span class="dot">·</span><a href="{% url 'home' %}">关于我们</a>
-      <span class="dot">·</span><a href="https://github.com/songxufeng-Seanfin" target="_blank" rel="noopener">GitHub</a>
-    </span>
-  </div>
+  <p class="footer-name">闲小集・校园闲置交易平台</p>
+  <p class="footer-links">学生认证<i>|</i>交易须知<i>|</i>联系我们</p>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -1,186 +1,190 @@
 {% extends "base.html" %}
 {% load goods_extras %}
-{% block title %}首页 - 闲小集{% endblock %}
+{% block title %}闲小集 · 校园闲置交易平台{% endblock %}
 {% block content %}
 
-<!-- ============ Banner：左文案 / 右图形，克制留白 ============ -->
+<!-- ============ Banner：左文案 / 右连线图形，透明底让气泡透上来 ============ -->
 <section class="hero">
-  <div class="row align-items-center g-5">
-    <div class="col-lg-6">
-      <h1>让每一件闲置，<br>连接每一位学生</h1>
-      <p class="lead-text">
-        面向所有学生的二手交易平台。发布你的闲置，淘到心仪好物——
-        同城可面交，异地可邮寄，交易方式由你们决定。
-      </p>
-      <div class="d-flex flex-wrap gap-2">
-        {% if user.is_authenticated %}
-          <a href="{% url 'product_create' %}" class="btn btn-brand btn-hero">发布闲置</a>
-          <a href="{% url 'my_products' %}" class="btn btn-ghost btn-hero">我的闲置</a>
-        {% else %}
-          <a href="{% url 'register' %}" class="btn btn-brand btn-hero">免费注册</a>
-          <a href="{% url 'login' %}" class="btn btn-ghost btn-hero">登录</a>
-        {% endif %}
-      </div>
+  <div class="hero-copy">
+    <h1>让每一件闲置<br>连接每一位学生</h1>
+    <p class="hero-sub">校内自提・学生认证・就近交易</p>
+    <div class="hero-cta">
+      <a href="{% url 'product_create' %}" class="btn btn-brand btn-hero">发布闲置</a>
+      <a href="#goods" class="hero-link">先逛逛集市<i class="bi bi-arrow-right"></i></a>
     </div>
+  </div>
 
-    <div class="col-lg-6">
-      <div class="hero-art">
-        <svg viewBox="0 0 300 280" width="100%" role="img" aria-label="闲小集：闲置在同学之间流转">
-          <defs>
-            <filter id="softDrop" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#2f6ad9" flood-opacity=".10"/>
-            </filter>
-          </defs>
+  <div class="hero-art">
+    <svg viewBox="0 0 320 300" width="100%" role="img" aria-label="闲置在同学之间流转">
+      <defs>
+        <filter id="nodeShadow" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#2f6ad9" flood-opacity=".10"/>
+        </filter>
+      </defs>
 
-          <!-- 外圈：细实线 -->
-          <circle cx="150" cy="140" r="112" fill="none" stroke="#e8eff9" stroke-width="1"/>
-          <!-- 中圈：缓慢流动的虚线环 -->
-          <circle class="ring-dash" cx="150" cy="140" r="82" fill="none"
-                  stroke="#cddcf3" stroke-width="1.2" stroke-dasharray="2 8" stroke-linecap="round"/>
+      <!-- 外圈：极细静止线，撑住画面 -->
+      <circle cx="160" cy="150" r="142" fill="none" stroke="#edf3fb" stroke-width="1"/>
+      <!-- 内圈：淡虚线，静止 -->
+      <circle cx="160" cy="150" r="82" fill="none" stroke="#e2ebf8" stroke-width="1"
+              stroke-dasharray="1 9" stroke-linecap="round"/>
 
-          <!-- 连线：中心到四个节点，细、淡、缓慢流动 -->
-          <g stroke="#dbe7f8" stroke-width="1.2" fill="none" stroke-linecap="round">
-            <path class="link-line" d="M150 94 L150 28"/>
-            <path class="link-line" d="M196 140 L262 140"/>
-            <path class="link-line" d="M150 186 L150 252"/>
-            <path class="link-line" d="M104 140 L38 140"/>
-          </g>
+      <!-- 连线：中心到四个节点，缓慢流动 -->
+      <g stroke="#cfdff4" stroke-width="1.2" fill="none" stroke-linecap="round">
+        <path class="link-line" d="M160 104V56"/>
+        <path class="link-line" d="M206 150h48"/>
+        <path class="link-line" d="M160 196v48"/>
+        <path class="link-line" d="M114 150H66"/>
+      </g>
 
-          <!-- 节点小点 -->
-          <g fill="#b9cde9">
-            <circle cx="150" cy="28" r="3"/>
-            <circle cx="262" cy="140" r="3"/>
-            <circle cx="150" cy="252" r="3"/>
-            <circle cx="38" cy="140" r="3"/>
-          </g>
+      <!-- 中心：品牌图形 -->
+      <circle cx="160" cy="150" r="46" fill="#ffffff" stroke="#e6eef9" stroke-width="1"
+              filter="url(#nodeShadow)"/>
+      <g transform="translate(132,123)">
+        <rect x="4" y="10" width="48" height="34" rx="5" fill="#eff4fd" stroke="#2f6ad9" stroke-width="1.8"/>
+        <path d="M4 18h48" stroke="#2f6ad9" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="20" cy="30" r="2.4" fill="#2f6ad9"/>
+        <circle cx="36" cy="30" r="2.4" fill="#2f6ad9"/>
+        <path d="M23 37q5 3.4 10 0" fill="none" stroke="#2f6ad9" stroke-width="1.8" stroke-linecap="round"/>
+      </g>
 
-          <!-- 中心：品牌图形 -->
-          <circle cx="150" cy="140" r="46" fill="#ffffff" stroke="#e3ecf9" stroke-width="1" filter="url(#softDrop)"/>
-          <g transform="translate(124,118)">
-            <rect x="4" y="10" width="48" height="34" rx="5" fill="#eff4fd" stroke="#2f6ad9" stroke-width="1.8"/>
-            <path d="M4 18h48" stroke="#2f6ad9" stroke-width="1.8" stroke-linecap="round"/>
-            <circle cx="20" cy="30" r="2.4" fill="#2f6ad9"/>
-            <circle cx="36" cy="30" r="2.4" fill="#2f6ad9"/>
-            <path d="M23 37q5 3.4 10 0" fill="none" stroke="#2f6ad9" stroke-width="1.8" stroke-linecap="round"/>
-          </g>
-        </svg>
-      </div>
-    </div>
+      <!-- 四个节点：教材 / 电脑 / 耳机 / 相机 -->
+      <g filter="url(#nodeShadow)">
+        <rect x="144" y="24" width="32" height="32" rx="9" fill="#fff" stroke="#e6eef9"/>
+        <rect x="254" y="134" width="32" height="32" rx="9" fill="#fff" stroke="#e6eef9"/>
+        <rect x="144" y="244" width="32" height="32" rx="9" fill="#fff" stroke="#e6eef9"/>
+        <rect x="34" y="134" width="32" height="32" rx="9" fill="#fff" stroke="#e6eef9"/>
+      </g>
+      <g stroke="#2f6ad9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"
+         fill="none" opacity=".82">
+        <g transform="translate(160,40)">
+          <path d="M-7-4.6c2.5-1 5.2-.6 7 .9 1.8-1.5 4.5-1.9 7-.9v9.4c-2.5-1-5.2-.6-7 .9-1.8-1.5-4.5-1.9-7-.9z"/>
+          <path d="M0-3.7v9.4"/>
+        </g>
+        <g transform="translate(270,150)">
+          <rect x="-6.6" y="-5.4" width="13.2" height="8.6" rx="1.2"/>
+          <path d="M-9 5.2h18"/>
+        </g>
+        <g transform="translate(160,260)">
+          <path d="M-6.4 1.2v-1.4a6.4 6.4 0 0 1 12.8 0v1.4"/>
+          <rect x="-8" y="1.2" width="3.4" height="6.2" rx="1.6"/>
+          <rect x="4.6" y="1.2" width="3.4" height="6.2" rx="1.6"/>
+        </g>
+        <g transform="translate(50,150)">
+          <rect x="-7.6" y="-4.4" width="15.2" height="10.4" rx="2"/>
+          <circle cx="0" cy="1" r="3.1"/>
+          <path d="M-3.4-4.4l1.3-2.2h4.2l1.3 2.2"/>
+        </g>
+      </g>
+    </svg>
   </div>
 </section>
 
-<!-- ============ 信任信息：一行、浅灰、不堆卡片 ============ -->
-<div class="trust-strip">
-  <span><i class="bi bi-mortarboard"></i>学生认证</span>
-  <span class="sep"></span>
-  <span><i class="bi bi-shield-check"></i>实名沟通</span>
-  <span class="sep"></span>
-  <span><i class="bi bi-truck"></i>面交 / 邮寄都可</span>
-</div>
+<!-- ============ 搜索 + 分类：一整块筛选组件，紧贴 Banner ============ -->
+<div class="filter-panel">
+  <form method="get" action="{% url 'home' %}" class="search-bar">
+    <i class="bi bi-search search-icon"></i>
+    <input type="text" name="q" value="{{ keyword }}"
+           placeholder="搜索教材、自行车、显示器、耳机……">
+    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+    <button type="submit" class="btn btn-brand">搜索</button>
+  </form>
 
-<!-- ============ 搜索 ============ -->
-<form method="get" action="{% url 'home' %}" class="search-bar">
-  <i class="bi bi-search search-icon"></i>
-  <input type="text" name="q" value="{{ keyword }}"
-         placeholder="搜索教材、自行车、显示器、耳机……">
-  {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
-  <button type="submit" class="btn btn-brand">搜索</button>
-</form>
-
-<!-- ============ 分类：下划线标签 ============ -->
-<div class="cat-tabs mb-3">
-  <a href="{% url 'home' %}{% if keyword %}?q={{ keyword }}{% endif %}"
-     class="cat-tab {% if not current_category %}active{% endif %}">全部</a>
-  {% for cat in categories %}
-    <a href="{% url 'home' %}?category={{ cat.slug }}{% if keyword %}&q={{ keyword }}{% endif %}"
-       class="cat-tab {% if current_category == cat.slug %}active{% endif %}">
-      <i class="bi {{ cat.slug|cat_icon }} me-1"></i>{{ cat.name }}
-    </a>
-  {% endfor %}
-</div>
-
-<!-- ============ 列表头 ============ -->
-<div class="d-flex align-items-end justify-content-between mb-3">
-  <div>
-    <h2 class="section-title">
-      {% if keyword %}“{{ keyword }}” 的结果{% elif current_category %}分类好物{% else %}最新上架{% endif %}
-    </h2>
-    <p class="section-sub">共 {{ total_count }} 件在售闲置</p>
-  </div>
-</div>
-
-<!-- ============ 商品网格 ============ -->
-{% if page_obj.object_list %}
-  <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3 g-md-4 mb-5">
-    {% for product in page_obj %}
-      <div class="col">
-        <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
-          <div class="product-card">
-            <div class="product-thumb">
-              {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.title }}" loading="lazy">
-              {% else %}
-                <div class="thumb-placeholder"><i class="bi {{ product.category.slug|cat_icon }}"></i></div>
-              {% endif %}
-            </div>
-            <div class="p-3">
-              <div class="product-title">{{ product.title }}</div>
-              <div class="d-flex align-items-baseline mt-2">
-                <span class="price-symbol">¥</span><span class="price">{{ product.price|floatformat:"-2" }}</span>
-                {% if product.original_price %}
-                  <span class="original-price">¥{{ product.original_price|floatformat:"-2" }}</span>
-                {% endif %}
-              </div>
-              <div class="d-flex align-items-center justify-content-between mt-2">
-                <span class="meta-text text-truncate">
-                  {{ product.seller.username }}{% if product.location %} · {{ product.location }}{% endif %}
-                </span>
-                <span class="condition-tag">{{ product.get_condition_display }}</span>
-              </div>
-            </div>
-          </div>
-        </a>
-      </div>
+  <div class="cat-tabs">
+    <a href="{% url 'home' %}{% if keyword %}?q={{ keyword }}{% endif %}"
+       class="cat-tab {% if not current_category %}active{% endif %}">全部</a>
+    {% for cat in categories %}
+      <a href="{% url 'home' %}?category={{ cat.slug }}{% if keyword %}&q={{ keyword }}{% endif %}"
+         class="cat-tab {% if current_category == cat.slug %}active{% endif %}">
+        <i class="bi {{ cat.slug|cat_icon }} me-1"></i>{{ cat.name }}
+      </a>
     {% endfor %}
   </div>
+</div>
 
-  {% if page_obj.has_other_pages %}
-    <nav class="mb-5">
-      <ul class="pagination pagination-sm justify-content-center mb-0">
-        {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if keyword %}&q={{ keyword }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">上一页</a>
-          </li>
-        {% endif %}
-        <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
-        {% if page_obj.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if keyword %}&q={{ keyword }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">下一页</a>
-          </li>
-        {% endif %}
-      </ul>
-    </nav>
-  {% endif %}
-{% else %}
-  <div class="card-soft mb-5">
-    <div class="card-body text-center py-5">
-      <i class="bi bi-inbox" style="font-size:34px;color:#c3cedd;"></i>
-      <p class="mt-3 mb-1" style="font-size:15px;color:var(--ink);">
-        {% if keyword or current_category %}没有找到匹配的闲置{% else %}集市还空着{% endif %}
-      </p>
-      <p class="section-sub mb-3">
-        {% if keyword or current_category %}换个关键词试试，或者 <a href="{% url 'home' %}" style="color:var(--brand);">看全部好物</a>{% else %}发布你的第一件闲置，让它找到下一个主人{% endif %}
-      </p>
-      {% if user.is_authenticated %}
-        <a href="{% url 'product_create' %}" class="btn btn-brand px-4">发布闲置</a>
-      {% else %}
-        <a href="{% url 'register' %}" class="btn btn-brand px-4">注册后发布</a>
-      {% endif %}
+<!-- ============ 商品列表 ============ -->
+<section id="goods">
+  <div class="list-head">
+    <div class="d-flex align-items-baseline">
+      <h2 class="section-title">
+        {% if keyword %}“{{ keyword }}” 的结果{% elif current_category %}分类好物{% else %}最新上架{% endif %}
+      </h2>
+      <span class="count">共 {{ total_count }} 件在售</span>
     </div>
+    <p class="hot-hint">近期热门：考研教材、宿舍电器、运动装备</p>
   </div>
-{% endif %}
 
-<!-- ============ 交易流程：纯文字三列，不做卡片堆叠 ============ -->
+  {% if page_obj.object_list %}
+    <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-2 g-md-3">
+      {% for product in page_obj %}
+        <div class="col">
+          <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
+            <div class="product-card">
+              <div class="product-thumb">
+                {% if product.image %}
+                  <img src="{{ product.image.url }}" alt="{{ product.title }}" loading="lazy">
+                {% else %}
+                  <div class="thumb-placeholder"><i class="bi {{ product.category.slug|cat_icon }}"></i></div>
+                {% endif %}
+              </div>
+              <div class="product-body">
+                <div class="product-title">{{ product.title }}</div>
+                <div class="d-flex align-items-baseline mt-1">
+                  <span class="price-symbol">¥</span><span class="price">{{ product.price|floatformat:"-2" }}</span>
+                  {% if product.original_price %}
+                    <span class="original-price">¥{{ product.original_price|floatformat:"-2" }}</span>
+                  {% endif %}
+                </div>
+                <div class="d-flex align-items-center justify-content-between mt-2">
+                  <span class="meta-text text-truncate">
+                    {{ product.seller.username }}{% if product.location %} · {{ product.location }}{% endif %}
+                  </span>
+                  <span class="condition-tag">{{ product.get_condition_display }}</span>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+      <nav class="mt-4">
+        <ul class="pagination pagination-sm justify-content-center mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if keyword %}&q={{ keyword }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">上一页</a>
+            </li>
+          {% endif %}
+          <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if keyword %}&q={{ keyword }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">下一页</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="card-soft">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-inbox" style="font-size:34px;color:#c3cedd;"></i>
+        <p class="mt-3 mb-1" style="font-size:15px;color:var(--ink);">
+          {% if keyword or current_category %}没有找到匹配的闲置{% else %}集市还空着{% endif %}
+        </p>
+        <p class="section-sub mb-3">
+          {% if keyword or current_category %}换个关键词试试，或者 <a href="{% url 'home' %}" style="color:var(--brand);">看全部好物</a>{% else %}发布你的第一件闲置，让它找到下一个主人{% endif %}
+        </p>
+        {% if user.is_authenticated %}
+          <a href="{% url 'product_create' %}" class="btn btn-brand px-4">发布闲置</a>
+        {% else %}
+          <a href="{% url 'register' %}" class="btn btn-brand px-4">注册后发布</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+<!-- ============ 交易流程：纯文字三列 ============ -->
 <section class="steps">
   <h2 class="section-title mb-1">在集市上交易，只需三步</h2>
   <p class="section-sub mb-4">从挂出闲置到完成交易，最快当天搞定</p>
@@ -206,68 +210,70 @@
 <style>
   /* ---------- Banner ---------- */
   .hero {
-    background: linear-gradient(135deg, #f1f6fe 0%, #f9fbff 58%, #ffffff 100%);
-    border: 1px solid #e6eef9;
-    border-radius: 12px;
-    padding: 60px 56px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+    align-items: center;
+    gap: 40px;
+    padding: 34px 8px 38px;
   }
   .hero h1 {
-    font-size: 34px;
-    font-weight: 500;
-    line-height: 1.45;
-    letter-spacing: .02em;
-    color: var(--ink);
     margin: 0;
+    font-size: 38px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: .01em;
+    color: var(--ink);
   }
-  .hero .lead-text {
+  .hero-sub {
+    margin: 16px 0 0;
     font-size: 14.5px;
     font-weight: 400;
     color: var(--text-2);
-    line-height: 1.9;
-    margin: 18px 0 32px;
-    max-width: 430px;
+    letter-spacing: .05em;
   }
-  .btn-hero { height: 44px; padding: 0 24px; font-size: 14.5px; display: inline-flex; align-items: center; }
-  .hero-art { max-width: 340px; margin: 0 auto; }
+  .hero-cta { display: flex; align-items: center; gap: 24px; margin-top: 30px; flex-wrap: wrap; }
+  .btn-hero {
+    height: 46px;
+    padding: 0 28px;
+    font-size: 14.5px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .hero-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13.5px;
+    color: var(--text-2);
+    text-decoration: none;
+    transition: color .2s ease-out;
+  }
+  .hero-link i { font-size: 12px; }
+  .hero-link:hover { color: var(--brand); }
+  .hero-art { max-width: 372px; width: 100%; margin: 0 auto; }
 
-  .ring-dash { transform-origin: 150px 140px; animation: ring-spin 90s linear infinite; }
-  @keyframes ring-spin { to { transform: rotate(360deg); } }
-
+  /* 只保留连线流动，其余特效去掉 */
   .link-line { stroke-dasharray: 2 7; animation: line-flow 16s linear infinite; }
   @keyframes line-flow { to { stroke-dashoffset: -180; } }
+  @media (prefers-reduced-motion: reduce) { .link-line { animation: none; } }
 
-  .hero-art { animation: soft-float 10s ease-in-out infinite alternate; }
-  @keyframes soft-float {
-    from { transform: translateY(-5px); }
-    to   { transform: translateY(5px); }
+  /* ---------- 搜索 + 分类：一整块 ---------- */
+  .filter-panel {
+    background: rgba(255, 255, 255, .74);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(214, 227, 246, .95);
+    border-radius: var(--r);
+    padding: 14px 16px 12px;
+    box-shadow: 0 2px 8px rgba(16, 24, 40, .04);
   }
-  @media (prefers-reduced-motion: reduce) {
-    .ring-dash, .link-line, .hero-art { animation: none; }
-  }
-
-  /* ---------- 信任条 ---------- */
-  .trust-strip {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px 18px;
-    padding: 20px 4px 22px;
-    font-size: 13px;
-    color: var(--text-3);
-  }
-  .trust-strip i { color: #a8b8cf; margin-right: 4px; font-size: 14px; }
-  .trust-strip .sep { width: 1px; height: 12px; background: #e3e8f0; }
-
-  /* ---------- 搜索 ---------- */
   .search-bar {
     display: flex;
     align-items: center;
     gap: 10px;
     background: #fff;
     border: 1px solid #dfe4ec;
-    border-radius: var(--r);
-    padding: 6px 6px 6px 14px;
-    margin-bottom: 20px;
+    border-radius: var(--r-btn);
+    padding: 4px 4px 4px 14px;
     transition: border-color .2s ease-out, box-shadow .2s ease-out;
   }
   .search-bar:focus-within {
@@ -282,14 +288,38 @@
     background: transparent;
     font-size: 14px;
     color: var(--text);
-    padding: 8px 0;
+    padding: 9px 0;
     min-width: 0;
   }
   .search-bar input::placeholder { color: #a8b0bd; }
-  .search-bar .btn { height: 36px; padding: 0 20px; flex: none; }
+  .search-bar .btn { height: 38px; padding: 0 22px; flex: none; }
+  .filter-panel .cat-tabs { margin-top: 12px; }
+
+  /* ---------- 列表头 ---------- */
+  .list-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 24px;
+    margin: 34px 0 16px;
+  }
+  .list-head .section-title { font-size: 18px; font-weight: 600; }
+  .list-head .count {
+    margin-left: 10px;
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--text-3);
+  }
+  .hot-hint { margin: 0; font-size: 12.5px; color: #a2a9b4; }
+
+  /* ---------- 商品卡 ---------- */
+  .product-body { padding: 12px 14px 14px; }
+  .product-card .product-title { font-weight: 500; color: var(--ink); }
+  .product-card .condition-tag { margin-left: 8px; }
 
   /* ---------- 步骤 ---------- */
-  .steps { border-top: 1px solid var(--line); padding-top: 32px; margin-top: 8px; }
+  .steps { border-top: 1px solid var(--line); padding-top: 34px; margin-top: 46px; }
   .step-no {
     font-size: 12px;
     font-weight: 500;
@@ -304,7 +334,7 @@
   .pagination .page-link {
     border-color: var(--line);
     color: var(--text-2);
-    border-radius: var(--r);
+    border-radius: var(--r-sm);
     margin: 0 3px;
     font-size: 13px;
   }
@@ -314,16 +344,24 @@
     color: #fff;
   }
 
+  #goods { scroll-margin-top: 80px; }
+
   @media (max-width: 991.98px) {
-    .hero { padding: 40px 28px; }
-    .hero h1 { font-size: 27px; }
+    .hero { grid-template-columns: 1fr; gap: 16px; padding: 22px 2px 26px; }
+    .hero h1 { font-size: 30px; }
+    .hero-art { max-width: 300px; margin-top: 8px; }
+    .list-head { margin-top: 26px; }
   }
   @media (max-width: 575.98px) {
-    .hero { padding: 32px 22px; border-radius: 10px; }
-    .hero h1 { font-size: 23px; }
-    .hero .lead-text { font-size: 13.5px; margin: 14px 0 24px; }
-    .hero-art { max-width: 220px; margin-top: 8px; }
-    .search-bar .btn { padding: 0 14px; }
+    .hero h1 { font-size: 25px; }
+    .hero-sub { font-size: 13.5px; }
+    .hero-cta { margin-top: 22px; gap: 16px; }
+    .btn-hero { height: 42px; padding: 0 22px; }
+    .hero-art { max-width: 220px; }
+    .filter-panel { padding: 12px 12px 10px; }
+    .search-bar .btn { padding: 0 16px; }
+    .list-head .section-title { font-size: 16px; }
+    .hot-hint { font-size: 12px; }
   }
 </style>
 {% endblock %}
