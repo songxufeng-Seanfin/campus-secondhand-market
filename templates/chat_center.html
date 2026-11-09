@@ -79,7 +79,7 @@
         <a href="{% url 'product_detail' product.pk %}" class="im-head-link">查看商品</a>
       </header>
 
-      <!-- 商品卡片：协商中的这件东西 -->
+      <!-- 商品横幅：价格 + 含运费 + 立即购买 -->
       <div class="im-product">
         <a href="{% url 'product_detail' product.pk %}" class="im-product-thumb">
           {% if product.image %}
@@ -90,19 +90,22 @@
         </a>
         <div class="im-product-main">
           <a href="{% url 'product_detail' product.pk %}" class="im-product-title">{{ product.title }}</a>
-          <div class="im-product-meta">
+          <div class="im-price-row">
             <span class="im-price"><span class="price-symbol">¥</span>{{ product.price|floatformat:"-2" }}</span>
+            <span class="im-ship">{% if product.is_free_shipping %}含运费{% else %}运费 ¥{{ product.shipping_fee_amount|floatformat:"-2" }} 另计{% endif %}</span>
+          </div>
+          <div class="im-sub-row">
             <span class="im-tag">{{ product.get_condition_display }}</span>
-            <span class="im-ship">{% if product.is_free_shipping %}包邮{% else %}不包邮 · 运费 ¥{{ product.shipping_fee_amount }}{% endif %}</span>
+            <span class="im-loc"><i class="bi bi-geo-alt"></i> {{ product.location|default:"校内" }}</span>
           </div>
         </div>
         <div class="im-product-action">
           {% if product.is_on_sale %}
-            <a href="{% url 'checkout' product.pk %}" class="btn btn-brand btn-sm px-3">购买</a>
+            <a href="{% url 'checkout' product.pk %}" class="im-buy-btn">立即购买</a>
           {% elif product.is_sold %}
-            <span class="btn btn-sm px-3 im-btn-off">已售出</span>
+            <span class="im-buy-btn is-off">已售出</span>
           {% else %}
-            <span class="btn btn-sm px-3 im-btn-off">已预订</span>
+            <span class="im-buy-btn is-off">已预订</span>
           {% endif %}
         </div>
       </div>
@@ -138,7 +141,7 @@
       <form class="im-input" id="chatForm" method="post" action="{% url 'chat_send' active.pk %}">
         {% csrf_token %}
         <textarea id="chatBody" name="body" rows="1" maxlength="300"
-                  placeholder="说点什么…（Enter 发送，Shift+Enter 换行）" autocomplete="off"></textarea>
+                  placeholder="想跟TA说点什么…" autocomplete="off"></textarea>
         <button class="btn btn-brand" type="submit">发送</button>
       </form>
     {% else %}
@@ -316,20 +319,36 @@
   .im-product-thumb img { width: 100%; height: 100%; object-fit: cover; }
   .im-product-main { flex: 1; min-width: 0; }
   .im-product-title {
-    display: block; font-size: 13.5px; font-weight: 600; color: #16202e; text-decoration: none;
+    display: block; font-size: 13px; font-weight: 600; color: #16202e; text-decoration: none;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .im-product-title:hover { color: var(--brand); }
-  .im-product-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
-  .im-price { font-size: 15px; font-weight: 700; color: #d4380d; }
-  .im-price .price-symbol { font-size: 11px; }
+  .im-price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 3px; }
+  .im-price { font-size: 19px; font-weight: 800; color: #ff4400; line-height: 1.2; }
+  .im-price .price-symbol { font-size: 12px; font-weight: 700; }
+  .im-ship { font-size: 11.5px; color: #9aa1ac; }
+  .im-sub-row { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
   .im-tag {
     font-size: 11px; color: #6b7280; background: #f2f4f7;
     padding: 1px 6px; border-radius: 4px;
   }
-  .im-ship { font-size: 11.5px; color: #9aa1ac; }
+  .im-loc { font-size: 11px; color: #9aa1ac; }
+  .im-loc i { font-size: 11px; }
   .im-product-action { flex: none; }
-  .im-btn-off { background: #eef2f7; color: #8fa3bd; border: none; cursor: default; }
+  .im-buy-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 34px; padding: 0 18px;
+    background: #ff4400; color: #fff;
+    border-radius: 999px;
+    font-size: 13px; font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(255,68,0,.25);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .im-buy-btn:hover { color: #fff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,68,0,.32); }
+  .im-buy-btn.is-off {
+    background: #eef2f7; color: #8fa3bd; box-shadow: none; cursor: default; transform: none;
+  }
 
   .im-order-tip {
     flex: none;
@@ -368,7 +387,7 @@
   .im-input {
     flex: none;
     display: flex; align-items: flex-end; gap: 10px;
-    padding: 12px 18px 14px;
+    padding: 10px 14px 14px;
     background: #fff;
     border-top: 1px solid #e9ecf1;
   }
@@ -376,17 +395,18 @@
     flex: 1;
     resize: none;
     max-height: 96px;
-    border: 1px solid #e4e8ef;
-    border-radius: 10px;
-    padding: 9px 12px;
+    border: none;
+    background: #f2f3f5;
+    border-radius: 999px;
+    padding: 9px 16px;
     font-size: 13.5px;
     line-height: 1.5;
     color: var(--text);
     outline: none;
-    transition: border-color .2s ease, box-shadow .2s ease;
+    transition: background-color .2s ease, box-shadow .2s ease;
   }
-  .im-input textarea:focus { border-color: #a9c9ff; box-shadow: 0 0 0 3px rgba(22,119,255,.08); }
-  .im-input .btn { height: 38px; padding: 0 22px; border-radius: 10px; font-weight: 600; flex: none; }
+  .im-input textarea:focus { background: #eef1f5; box-shadow: 0 0 0 3px rgba(22,119,255,.08); }
+  .im-input .btn { height: 36px; padding: 0 18px; border-radius: 999px; font-weight: 600; flex: none; }
 
   .im-empty {
     margin: auto; text-align: center; padding: 40px 24px; color: #8a919c;
@@ -412,9 +432,10 @@
     .im-product { padding: 8px 12px; }
     .im-scroll { padding: 14px 12px 6px; }
     .im-bubble { max-width: 76%; }
-    .im-input { padding: 10px 12px 12px; gap: 8px; }
-    .im-input .btn { padding: 0 16px; }
-    .im-ship { display: none; }
+    .im-input { padding: 8px 10px 12px; gap: 8px; }
+    .im-input .btn { padding: 0 14px; }
+    .im-price { font-size: 17px; }
+    .im-buy-btn { height: 32px; padding: 0 14px; font-size: 12.5px; }
     .im-intro { font-size: 11px; }
   }
 </style>
