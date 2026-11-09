@@ -387,6 +387,53 @@
     .site-footer a { color: var(--brand); text-decoration: none; font-weight: 600; }
     .site-footer a:hover { color: var(--brand-dark); }
 
+    /* ============ 手机端底部 Tab 栏：只在窄屏出现 ============ */
+    .mobile-tabbar { display: none; }
+    @media (max-width: 767.98px) {
+      body:not(.chat-app) { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+      .mobile-tabbar {
+        display: block;
+        position: fixed; left: 0; right: 0; bottom: 0;
+        z-index: 1030;
+        background: rgba(255, 255, 255, .96);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid var(--line);
+        box-shadow: 0 -4px 18px rgba(22, 119, 255, .08);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      /* 聊天页自己有输入条，不重复放 Tab 栏 */
+      body.chat-app .mobile-tabbar { display: none; }
+      .mtab-row {
+        display: flex; align-items: stretch;
+        height: 58px; max-width: 520px; margin: 0 auto;
+      }
+      .mtab {
+        flex: 1; position: relative;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 3px;
+        color: var(--text-3); font-size: 11px; text-decoration: none;
+      }
+      .mtab i { font-size: 20px; line-height: 1; }
+      .mtab.is-active { color: var(--brand); font-weight: 600; }
+      .mtab.is-active i { color: var(--brand); }
+      .mtab-publish { justify-content: flex-end; padding-bottom: 9px; color: var(--brand); }
+      .mtab-bubble {
+        position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+        width: 46px; height: 46px;
+        border-radius: 50%; border: 3px solid #fff;
+        background: linear-gradient(135deg, #4096ff, #1677ff);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 6px 16px rgba(22, 119, 255, .36);
+      }
+      .mtab-bubble i { color: #fff; font-size: 22px; }
+      .mtab-badge {
+        position: absolute; top: 6px; left: 50%; margin-left: 5px;
+        min-width: 16px; height: 16px; padding: 0 4px;
+        border-radius: 999px; background: #ff4d4f; color: #fff;
+        font-size: 10px; font-weight: 600; line-height: 16px; text-align: center;
+      }
+    }
+
     /* 提示条 */
     .alert { border-radius: var(--r); font-size: 13.5px; }
   </style>
@@ -466,6 +513,28 @@
     </span>
   </div>
 </footer>
+
+<nav class="mobile-tabbar" aria-label="手机端底部导航">
+  <div class="mtab-row">
+    {% with cur=request.resolver_match.url_name %}
+      <a class="mtab {% if cur == 'home' %}is-active{% endif %}" href="{% url 'home' %}">
+        <i class="bi bi-house"></i><span class="mtab-label">首页</span>
+      </a>
+      <a class="mtab mtab-publish" href="{% url 'product_create' %}">
+        <span class="mtab-bubble"><i class="bi bi-plus-lg"></i></span>
+        <span class="mtab-label">发布</span>
+      </a>
+      <a class="mtab {% if cur == 'chat_list' or cur == 'chat_detail' %}is-active{% endif %}" href="{% url 'chat_list' %}">
+        <i class="bi bi-chat-dots"></i><span class="mtab-label">消息</span>
+        {% if chat_unread_total %}<span class="mtab-badge">{{ chat_unread_total }}</span>{% endif %}
+      </a>
+      <a class="mtab {% if cur == 'profile' %}is-active{% endif %}" href="{% url 'profile' %}">
+        <i class="bi bi-person"></i><span class="mtab-label">我的</span>
+      </a>
+    {% endwith %}
+  </div>
+</nav>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 {% block scripts %}{% endblock %}
 </body>
