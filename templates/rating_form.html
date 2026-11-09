@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}评价交易 - 闲小集{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>评价这笔交易</h1>
+  <p>你的评价会让其他同学更放心地交易，请如实打分。</p>
+</div>
+
+<div class="rate-order card-soft mb-4">
+  <a href="{% url 'product_detail' order.product.pk %}" class="rate-thumb">
+    {% if order.product.image %}
+      <img src="{{ order.product.image.url }}" alt="{{ order.product.title }}">
+    {% else %}
+      <span>{{ order.product.category.icon }}</span>
+    {% endif %}
+  </a>
+  <div class="rate-main">
+    <a href="{% url 'product_detail' order.product.pk %}" class="rate-title">{{ order.product.title }}</a>
+    <div class="rate-meta">订单 #{{ order.pk }} · {{ order.get_trade_mode_display }} · ¥{{ order.price|floatformat:"-2" }}</div>
+  </div>
+</div>
+
+<div class="card card-soft">
+  <div class="card-body p-4">
+    <p class="rate-question">
+      这次和 <a href="{% url 'seller_profile' other.pk %}">{{ other.username }}</a> 的交易体验如何？
+    </p>
+
+    <form method="post" action="{% url 'rating_create' order.pk %}">
+      {% csrf_token %}
+
+      <!-- 星级：用 radio 实现，纯 CSS 高亮，无需 JS -->
+      <div class="star-picker" role="radiogroup" aria-label="评分">
+        {% for i in "54321" %}
+          <input type="radio" id="star{{ i }}" name="score" value="{{ i }}" {% if forloop.first %}checked{% endif %}>
+          <label for="star{{ i }}" title="{{ i }} 星">★</label>
+        {% endfor %}
+      </div>
+      <div class="star-hint"><span id="starHint">默认 5 星，可点选调整</span></div>
+
+      <label class="form-label rate-label mt-3" for="content">想说的话（选填）</label>
+      <textarea class="form-control rate-content" id="content" name="content" rows="3" maxlength="200"
+                placeholder="比如：回复及时、宝贝和描述一致、当面交易很爽快……"></textarea>
+      <div class="text-end small text-muted mt-1">最多 200 字</div>
+
+      <div class="d-flex gap-2 mt-3">
+        <a href="{% url 'order_list' %}" class="btn btn-outline-secondary px-4">返回</a>
+        <button type="submit" class="btn btn-brand px-4 flex-grow-1">提交评价</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .page-head { margin-bottom: 20px; }
+  .page-head h1 { font-size: 24px; font-weight: 800; color: #0a2540; margin: 0 0 6px; }
+  .page-head p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+
+  .rate-order {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+  }
+  .rate-thumb {
+    width: 72px; height: 54px; flex: none;
+    border-radius: 10px; overflow: hidden;
+    background: linear-gradient(135deg, #eef6ff, #e2efff);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; text-decoration: none;
+  }
+  .rate-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .rate-main { min-width: 0; }
+  .rate-title {
+    display: block; font-size: 14.5px; font-weight: 600; color: #0a2540; text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .rate-title:hover { color: var(--brand); }
+  .rate-meta { font-size: 12.5px; color: var(--text-3); margin-top: 3px; }
+
+  .rate-question { font-size: 14.5px; font-weight: 600; color: #0a2540; margin-bottom: 14px; }
+  .rate-question a { color: var(--brand); text-decoration: none; }
+
+  .star-picker {
+    display: flex; flex-direction: row-reverse; justify-content: flex-end;
+    gap: 4px;
+  }
+  .star-picker input { display: none; }
+  .star-picker label {
+    font-size: 34px; line-height: 1;
+    color: #d7dde6;
+    cursor: pointer;
+    transition: color .15s ease, transform .15s ease;
+  }
+  /* 选中项及右侧（row-reverse 下视觉上的左侧）全部点亮 */
+  .star-picker input:checked ~ label { color: #ffb015; }
+  .star-picker label:hover { transform: scale(1.12); }
+  .star-picker label:hover,
+  .star-picker label:hover ~ label { color: #ffb015; }
+  .star-hint { margin-top: 6px; font-size: 12px; color: var(--text-3); }
+
+  .rate-label { font-size: 13.5px; color: #0a2540; font-weight: 600; }
+  .rate-content { border-radius: 10px; font-size: 13.5px; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  // 星级提示文案跟着选择变化，不额外发请求
+  var hints = {1: "很不愉快", 2: "不太满意", 3: "一般般", 4: "满意", 5: "非常满意"};
+  var radios = document.querySelectorAll(".star-picker input");
+  var hint = document.getElementById("starHint");
+  radios.forEach(function (r) {
+    r.addEventListener("change", function () {
+      hint.textContent = hints[r.value] || "";
+    });
+  });
+})();
+</script>
+{% endblock %}

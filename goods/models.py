@@ -262,6 +262,24 @@ class Order(models.Model):
             "rejected": "is-closed",
         }.get(self.status, "is-closed")
 
+    # ---- 评价相关：模板和视图共用的小工具 ----
+    @property
+    def can_be_rated(self):
+        """只有走完流程的订单才有资格被评价。"""
+        return self.status == "completed"
+
+    def rating_by(self, user):
+        """user 在这笔订单里已经提交的评价（没评过则 None）。"""
+        if not user.is_authenticated:
+            return None
+        return self.ratings.filter(rater=user).first()
+
+    def can_rate(self, user):
+        """user 能否评价这笔订单：订单已完成、user 是买卖双方之一、还没评过。"""
+        if not self.can_be_rated or not user.is_authenticated:
+            return False
+        return user.id in (self.buyer_id, self.seller_id) and self.rating_by(user) is None
+
 
 class Favorite(models.Model):
     """收藏：用户与商品的多对多中间表，用唯一约束防重复收藏。"""
@@ -405,3 +423,51 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender}: {self.body[:20]}"
+
+
+class Rating(models.Model):
+    """交易评价：订单完成后，买家和卖家各给对方打一次 1-5 星分。
+
+    设计要点：
+    - 评价挂在订单上而不是商品上：一笔成交产生两条互评（买家评卖家、卖家评买家）；
+    - UniqueConstraint(order, rater) 从数据库层面保证每人每单只能评一次；
+    - 不给用户存冗余信用字段，好评率/均分实时聚合计算，避免双写不一致；
+    - rater/ratee 的合法性（必须是该订单买卖双方）在视图里校验，模型层不重复约束。
+    """
+
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="ratings", verbose_name="订单"
+    )
+    rater = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="ratings_given",
+        verbose_name="评价人",
+    )
+    ratee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="ratings_received",
+        verbose_name="被评价人",
+    )
+    SCORE_CHOICES = [(i, f"{i} 星") for i in range(1, 6)]
+    score = models.PositiveSmallIntegerField("评分", choices=SCORE_CHOICES)
+    content = models.CharField("评价内容", max_length=200, blank=True)
+    created_at = models.DateTimeField("评价时间", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "交易评价"
+        verbose_name_plural = "交易评价"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["order", "rater"], name="uniq_rating_order_rater")
+        ]
+        indexes = [models.Index(fields=["ratee", "-created_at"])]
+
+    def __str__(self):
+        return f"{self.rater} → {self.ratee} · {self.score}星"
+
+    @property
+    def is_buyer_rater(self):
+        """买家评卖家为 True，卖家评买家为 False，主页上用于显示角色标签。"""
+        return self.rater_id == self.order.buyer_id

@@ -1,8 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count, F, OuterRef, Prefetch, Q, Subquery
+from django.db.models import Avg, Count, F, OuterRef, Prefetch, Q, Subquery
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -18,6 +19,7 @@ from .models import (
     Order,
     Product,
     ProductMessage,
+    Rating,
 )
 
 
@@ -113,6 +115,7 @@ def product_detail(request, pk):
         "my_order": my_order,
         "product_messages": product.messages.select_related("author"),
         "favorite_count": product.favorited_by.count(),
+        "seller_credit": _user_credit(product.seller),
     }
     return render(request, "product_detail.html", context)
 
@@ -438,9 +441,15 @@ def checkout(request, pk):
 
 @login_required
 def order_list(request):
-    """订单中心：我买到的 / 我卖出的，两个标签页。"""
+    """订单中心：我买到的 / 我卖出的，两个标签页。
+
+    顺手用 Subquery 查出「我在这笔订单里是否已评价」，
+    模板据此显示评价按钮或已评标记，不产生逐单查询。
+    """
     tab = request.GET.get("tab") or "bought"
     qs = Order.objects.select_related("product", "product__category", "buyer", "seller")
+    my_rating = Rating.objects.filter(order=OuterRef("pk"), rater=request.user)
+    qs = qs.annotate(my_rating_id=Subquery(my_rating.values("pk")[:1]))
 
     if tab == "sold":
         orders = qs.filter(seller=request.user)
@@ -564,3 +573,100 @@ def message_create(request, pk):
         ProductMessage.objects.create(product=product, author=request.user, body=body)
 
     return redirect(f"{product.get_absolute_url()}#messages")
+
+
+# ============================ 卖家主页 & 交易评价 ============================
+
+
+def _user_credit(user):
+    """聚合某用户收到的评价：好评率、均分、条数。
+
+    不在用户表存冗余字段，实时算——评价量很小（每笔成交最多 2 条），
+    聚合一次的开销远低于双写不一致带来的心智负担。
+    """
+    stats = user.ratings_received.aggregate(total=Count("id"), avg=Avg("score"))
+    total = stats["total"] or 0
+    avg = stats["avg"]
+    return {
+        "total": total,
+        "avg": round(avg, 1) if avg is not None else None,
+        "good_rate": round(avg / 5 * 100) if avg is not None else None,
+    }
+
+
+def seller_profile(request, pk):
+    """卖家/买家公开主页：TA 的信用、在售商品和收到的评价。
+
+    不需要登录也能看——这是集市里建立信任的门面页。
+    """
+    person = get_object_or_404(get_user_model(), pk=pk)
+
+    on_sale = (
+        _base_queryset()
+        .filter(seller=person)
+        .order_by("-created_at")
+    )
+    deals_done = Order.objects.filter(
+        Q(seller=person) | Q(buyer=person), status="completed"
+    ).count()
+
+    ratings = (
+        person.ratings_received.select_related(
+            "rater", "order", "order__product", "order__product__category"
+        )[:20]
+    )
+
+    context = {
+        "person": person,
+        "credit": _user_credit(person),
+        "deals_done": deals_done,
+        "on_sale": on_sale,
+        "ratings": ratings,
+    }
+    return render(request, "seller_profile.html", context)
+
+
+@login_required
+def rating_create(request, pk):
+    """评价一笔已完成的订单：买卖双方各评对方一次，评分 1-5 星。"""
+    order = get_object_or_404(
+        Order.objects.select_related("product", "product__category", "buyer", "seller"),
+        pk=pk,
+    )
+    other = order.seller if order.buyer_id == request.user.id else order.buyer
+
+    # 权限与状态在服务端把关：没完成、不是当事人、已评过，都礼貌拒绝
+    if not order.can_rate(request.user):
+        if order.rating_by(request.user) is not None:
+            messages.info(request, "你已经评价过这笔订单啦")
+        else:
+            messages.error(request, "这笔订单还没完成，暂时不能评价")
+        return redirect("order_list")
+
+    if request.method == "POST":
+        try:
+            score = int(request.POST.get("score") or 0)
+        except ValueError:
+            score = 0
+        content = (request.POST.get("content") or "").strip()[:200]
+
+        if score not in range(1, 6):
+            messages.error(request, "请选择 1-5 星评分")
+            return redirect("rating_create", pk=order.pk)
+
+        try:
+            Rating.objects.create(
+                order=order, rater=request.user, ratee=other, score=score, content=content
+            )
+        except IntegrityError:
+            messages.info(request, "你已经评价过这笔订单啦")
+            return redirect("order_list")
+
+        messages.success(request, "评价成功，感谢你让集市更值得信任 🌟")
+        return redirect("seller_profile", pk=other.pk)
+
+    return render(
+        request,
+        "rating_form.html",
+        {"order": order, "other": other, "my_rating": order.rating_by(request.user)},
+    )

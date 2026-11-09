@@ -35,7 +35,7 @@
           </div>
           <div class="order-meta">
             订单号 #{{ order.id }} · {{ order.created_at|date:"Y-m-d H:i" }}
-            {% if tab == 'bought' %}· 卖家 {{ order.seller.username }}{% else %}· 买家 {{ order.buyer.username }}{% endif %}
+            {% if tab == 'bought' %}· 卖家 <a href="{% url 'seller_profile' order.seller.pk %}" class="order-user">{{ order.seller.username }}</a>{% else %}· 买家 <a href="{% url 'seller_profile' order.buyer.pk %}" class="order-user">{{ order.buyer.username }}</a>{% endif %}
           </div>
 
           <div class="order-flags">
@@ -102,6 +102,11 @@
                 <button class="btn btn-link btn-sm p-0 text-decoration-none order-cancel">取消订单</button>
               </form>
             {% else %}
+              {% if order.status == 'completed' and not order.my_rating_id %}
+                <a href="{% url 'rating_create' order.pk %}" class="btn btn-brand btn-sm px-3">⭐ 评价对方</a>
+              {% elif order.status == 'completed' %}
+                <span class="order-rated"><i class="bi bi-star-fill"></i> 已评价</span>
+              {% endif %}
               <span class="order-done">
                 {% if order.status == 'completed' %}🤝 交易已完成{% elif order.status == 'rejected' %}卖家拒绝了这笔订单{% elif order.status == 'cancelled' %}订单已关闭{% endif %}
               </span>
@@ -231,6 +236,14 @@
   .order-cancel { color: var(--text-3); font-size: 12.5px; }
   .order-cancel:hover { color: #d4380d; }
   .order-done { font-size: 12.5px; color: var(--text-3); }
+  .order-user { color: var(--text-2); text-decoration: none; font-weight: 600; }
+  .order-user:hover { color: var(--brand); }
+  .order-rated {
+    font-size: 12px; color: #b26a00;
+    background: #fff7e6; border-radius: 999px; padding: 2px 10px;
+    white-space: nowrap;
+  }
+  .order-rated i { font-size: 11px; margin-right: 2px; color: #ffb015; }
 
   @media (max-width: 575.98px) {
     .order-card { flex-wrap: wrap; }

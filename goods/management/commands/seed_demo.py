@@ -27,6 +27,7 @@ from goods.models import (
     Order,
     Product,
     ProductMessage,
+    Rating,
 )
 
 # 商品 → 演示实拍图（放在 goods/seed_images/ 下，1120x840 的 4:3 图片）
@@ -306,10 +307,37 @@ class Command(BaseCommand):
                     )
                     chat_count += 1
 
+        # 6. 交易评价演示：一笔已完成订单 + 买卖双方互评（卖家主页能看到好评率）
+        rating_count = 0
+        done_product = Product.objects.filter(title="索尼 WH-1000XM4 头戴降噪耳机").first()
+        if done_product and not Order.objects.filter(product=done_product, buyer=buyer).exists():
+            done_order = Order.objects.create(
+                product=done_product,
+                buyer=buyer,
+                seller=done_product.seller,
+                price=done_product.price,
+                message="秒杀了！已经当面验过货，很新",
+                trade_mode="face",
+                status="completed",
+            )
+            # 商品随之标记售出，和真实流程一致
+            done_product.is_sold = True
+            done_product.save(update_fields=["is_sold"])
+            demo_ratings = [
+                (buyer, done_product.seller, 5, "耳机成色和描述一样，当面验机很爽快，好评！"),
+                (done_product.seller, buyer, 5, "买家很守时，聊两句就成交了，推荐！"),
+            ]
+            for rater, ratee, score, content in demo_ratings:
+                if not Rating.objects.filter(order=done_order, rater=rater).exists():
+                    Rating.objects.create(
+                        order=done_order, rater=rater, ratee=ratee, score=score, content=content
+                    )
+                    rating_count += 1
+
         self.stdout.write(
             self.style.SUCCESS(
                 f"完成：新增 {created_count} 件商品、{order_count} 笔订单、"
-                f"{message_count} 条留言、{favorite_count} 个收藏、{chat_count} 条私聊消息；"
-                f"当前商品总数 {Product.objects.count()}"
+                f"{message_count} 条留言、{favorite_count} 个收藏、{chat_count} 条私聊消息、"
+                f"{rating_count} 条评价；当前商品总数 {Product.objects.count()}"
             )
         )

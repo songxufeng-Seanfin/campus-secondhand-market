@@ -44,17 +44,17 @@
         {% endif %}
       </div>
 
-      <div class="seller-row">
+      <a href="{% url 'seller_profile' product.seller.pk %}" class="seller-row text-decoration-none">
         <span class="seller-avatar">{{ product.seller.username|first }}</span>
         <div>
-          <div class="seller-name">{{ product.seller.username }}</div>
-          <div class="seller-sub">发布于 {{ product.created_at|date:"Y-m-d" }}</div>
+          <div class="seller-name">{{ product.seller.username }} <i class="bi bi-chevron-right seller-arrow"></i></div>
+          <div class="seller-sub">发布于 {{ product.created_at|date:"Y-m-d" }}{% if seller_credit.good_rate is not None %} · 好评率 {{ seller_credit.good_rate }}%{% endif %}</div>
         </div>
         <div class="ms-auto seller-stats">
           <span><i class="bi bi-eye"></i>{{ product.views }}</span>
           <span><i class="bi bi-heart"></i>{{ favorite_count }}</span>
         </div>
-      </div>
+      </a>
 
       <dl class="detail-meta">
         {% if product.location %}
@@ -266,7 +266,11 @@
     border-radius: 12px;
     padding: 10px 12px;
     margin-bottom: 14px;
+    color: inherit;
+    transition: box-shadow .2s ease, transform .15s ease;
   }
+  a.seller-row:hover { box-shadow: 0 2px 10px rgba(22, 119, 255, .12); transform: translateY(-1px); }
+  .seller-arrow { font-size: 11px; color: var(--text-3); }
   .seller-avatar, .msg-avatar {
     width: 34px; height: 34px; flex: none;
     border-radius: 50%;

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}{{ person.username }} 的主页 - 闲小集{% endblock %}
+{% block content %}
+
+<!-- ============ 信用名片 ============ -->
+<div class="profile-hero card-soft">
+  <span class="profile-ava">
+    {% if person.avatar %}<img src="{{ person.avatar.url }}" alt="">{% else %}{{ person.username|first }}{% endif %}
+  </span>
+
+  <div class="profile-id">
+    <h1>{{ person.username }}</h1>
+    <p class="profile-join"><i class="bi bi-calendar3"></i> {{ person.date_joined|date:"Y年n月" }} 加入集市{% if person.phone %} · 已认证手机{% endif %}</p>
+  </div>
+
+  <div class="credit-stats">
+    <div class="credit-item">
+      <span class="credit-num {% if credit.good_rate is not None %}is-good{% endif %}">
+        {% if credit.good_rate is not None %}{{ credit.good_rate }}%{% else %}—{% endif %}
+      </span>
+      <span class="credit-label">好评率</span>
+    </div>
+    <div class="credit-item">
+      <span class="credit-num">{% if credit.avg is not None %}{{ credit.avg }}{% else %}—{% endif %}</span>
+      <span class="credit-label">平均评分</span>
+    </div>
+    <div class="credit-item">
+      <span class="credit-num">{{ deals_done }}</span>
+      <span class="credit-label">完成交易</span>
+    </div>
+    <div class="credit-item">
+      <span class="credit-num">{{ credit.total }}</span>
+      <span class="credit-label">收到评价</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TA 的闲置 ============ -->
+<div class="section-head">
+  <h2><i class="bi bi-bag"></i> TA 的闲置</h2>
+  <span class="section-sub">{{ on_sale|length }} 件</span>
+</div>
+
+{% if on_sale %}
+  <div class="row g-3 mb-4">
+    {% for product in on_sale %}
+      <div class="col-6 col-md-4">
+        <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
+          <div class="card card-soft h-100 product-card">
+            <div class="product-thumb">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.title }}" loading="lazy">
+              {% else %}
+                <div class="thumb-placeholder">{{ product.category.icon }}</div>
+              {% endif %}
+              {% if product.is_reserved %}<span class="reserved-badge">已预订</span>{% endif %}
+            </div>
+            <div class="card-body p-3">
+              <div class="product-title">{{ product.title }}</div>
+              <div class="d-flex align-items-end justify-content-between mt-2">
+                <div><span class="price-symbol">¥</span><span class="price">{{ product.price|floatformat:"-2" }}</span></div>
+                <span class="condition-tag">{{ product.status_label }}</span>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card card-soft mb-4">
+    <div class="card-body text-center py-4">
+      <p class="mb-0 small text-muted">TA 暂时没有在售的闲置</p>
+    </div>
+  </div>
+{% endif %}
+
+<!-- ============ 收到的评价 ============ -->
+<div class="section-head">
+  <h2><i class="bi bi-stars"></i> 收到的评价</h2>
+  <span class="section-sub">{{ credit.total }} 条</span>
+</div>
+
+{% if ratings %}
+  <div class="d-flex flex-column gap-3 mb-4">
+    {% for r in ratings %}
+      <div class="rating-card">
+        <span class="rating-ava">
+          {% if r.rater.avatar %}<img src="{{ r.rater.avatar.url }}" alt="">{% else %}{{ r.rater.username|first }}{% endif %}
+        </span>
+        <div class="rating-main">
+          <div class="rating-top">
+            <strong>{{ r.rater.username }}</strong>
+            <span class="rating-role">{{ r.is_buyer_rater|yesno:"买家,卖家" }}</span>
+            <span class="rating-stars" aria-label="{{ r.score }} 星">
+              {% for _ in "12345" %}{% if forloop.counter <= r.score %}★{% else %}☆{% endif %}{% endfor %}
+            </span>
+            <span class="rating-time">{{ r.created_at|date:"Y-m-d" }}</span>
+          </div>
+          <a href="{% url 'product_detail' r.order.product.pk %}" class="rating-product">
+            交易：{{ r.order.product.title }}
+          </a>
+          {% if r.content %}<p class="rating-body">{{ r.content }}</p>{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card card-soft mb-4">
+    <div class="card-body text-center py-4">
+      <div style="font-size:36px;">🌱</div>
+      <p class="mt-2 mb-0 small text-muted">还没有收到评价，完成第一笔交易后就会出现在这里</p>
+    </div>
+  </div>
+{% endif %}
+
+<style>
+  .profile-hero {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 22px 24px;
+    margin-bottom: 24px;
+  }
+  .profile-ava {
+    width: 68px; height: 68px; flex: none;
+    border-radius: 50%; overflow: hidden;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #a9c9ff, var(--brand));
+    color: #fff; font-size: 26px; font-weight: 700;
+  }
+  .profile-ava img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-id h1 { font-size: 22px; font-weight: 800; color: #0a2540; margin: 0; }
+  .profile-join { margin: 4px 0 0; font-size: 12.5px; color: var(--text-3); }
+  .profile-join i { margin-right: 3px; }
+
+  .credit-stats {
+    margin-left: auto;
+    display: flex; gap: 28px;
+    flex-wrap: wrap;
+  }
+  .credit-item { text-align: center; min-width: 56px; }
+  .credit-num {
+    display: block;
+    font-size: 20px; font-weight: 800; color: #0a2540;
+    line-height: 1.2;
+  }
+  .credit-num.is-good { color: #15803d; }
+  .credit-label { font-size: 11.5px; color: var(--text-3); }
+
+  .section-head {
+    display: flex; align-items: baseline; gap: 8px;
+    margin: 6px 0 14px;
+  }
+  .section-head h2 { font-size: 17px; font-weight: 700; color: #0a2540; margin: 0; }
+  .section-head h2 i { color: var(--brand); margin-right: 4px; font-size: 15px; }
+  .section-sub { font-size: 12px; color: var(--text-3); }
+
+  .rating-card {
+    display: flex; gap: 12px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-1);
+  }
+  .rating-ava {
+    width: 40px; height: 40px; flex: none;
+    border-radius: 50%; overflow: hidden;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #a9c9ff, var(--brand));
+    color: #fff; font-size: 15px; font-weight: 700;
+  }
+  .rating-ava img { width: 100%; height: 100%; object-fit: cover; }
+  .rating-main { flex: 1; min-width: 0; }
+  .rating-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .rating-top strong { font-size: 13.5px; color: #0a2540; }
+  .rating-role {
+    font-size: 10.5px; padding: 1px 7px; border-radius: 999px;
+    background: var(--brand-light); color: var(--brand-dark);
+  }
+  .rating-stars { color: #ffb015; font-size: 13px; letter-spacing: 1px; }
+  .rating-time { margin-left: auto; font-size: 11px; color: var(--text-3); }
+  .rating-product {
+    display: block; margin-top: 3px;
+    font-size: 12px; color: var(--text-3); text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .rating-product:hover { color: var(--brand); }
+  .rating-body { margin: 6px 0 0; font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+  @media (max-width: 575.98px) {
+    .credit-stats { margin-left: 0; width: 100%; justify-content: space-between; gap: 12px; }
+  }
+</style>
+{% endblock %}

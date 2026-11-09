@@ -21,5 +21,9 @@ urlpatterns = [
     path("my/products/", views.my_products, name="my_products"),
     path("my/favorites/", views.favorites, name="favorites"),
     path("orders/", views.order_list, name="order_list"),
+    # 注意：rate 必须排在 <str:action> 之前，否则会被通配路由吞掉
+    path("orders/<int:pk>/rate/", views.rating_create, name="rating_create"),
     path("orders/<int:pk>/<str:action>/", views.order_action, name="order_action"),
+    # 卖家/买家公开主页
+    path("u/<int:pk>/", views.seller_profile, name="seller_profile"),
 ]
