@@ -1,10 +1,13 @@
+from pathlib import Path
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Avg, Count, F, OuterRef, Prefetch, Q, Subquery
-from django.http import Http404, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -670,3 +673,82 @@ def rating_create(request, pk):
         "rating_form.html",
         {"order": order, "other": other, "my_rating": order.rating_by(request.user)},
     )
+
+
+# ==================== PWA：添加到主屏幕 / 像 App 一样全屏打开 ====================
+# manifest 与 sw.js 必须从站点根路径返回，Service Worker 的作用域才是整个站点。
+# 图标由视图读取 static/pwa/ 下的 PNG，不依赖 staticfiles 的部署行为。
+
+PWA_MANIFEST = {
+    "name": "闲小集 · 校园二手集市",
+    "short_name": "闲小集",
+    "description": "让每一件闲置，连接每一位学生",
+    "lang": "zh-CN",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#ffffff",
+    "theme_color": "#1677ff",
+    "icons": [
+        {"src": "/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+        {"src": "/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+    ],
+}
+
+PWA_SW_JS = """/* 闲小集 Service Worker：只缓存站内图片，绝不碰页面与表单请求。
+   不缓存 HTML 是为了避免旧的 CSRF token 被复用导致登录/下单 403。 */
+const CACHE = 'xianxiaoji-v1';
+
+self.addEventListener('install', function (e) {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function (e) {
+  e.waitUntil(
+    caches.keys().then(function (keys) {
+      return Promise.all(keys.filter(function (k) { return k !== CACHE; })
+        .map(function (k) { return caches.delete(k); }));
+    }).then(function () { return self.clients.claim(); })
+  );
+});
+
+self.addEventListener('fetch', function (e) {
+  var req = e.request;
+  if (req.method !== 'GET' || req.mode === 'navigate') return;
+  var url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.indexOf('/media/') !== 0 && url.pathname.indexOf('/pwa/') !== 0) return;
+  e.respondWith(
+    caches.open(CACHE).then(function (cache) {
+      return cache.match(req).then(function (hit) {
+        var network = fetch(req).then(function (res) {
+          if (res.ok) cache.put(req, res.clone());
+          return res;
+        });
+        return hit || network.catch(function () { return Response.error(); });
+      });
+    })
+  );
+});
+"""
+
+
+def pwa_manifest(request):
+    """站点根目录 /manifest.webmanifest，供浏览器识别为可安装应用。"""
+    return JsonResponse(PWA_MANIFEST)
+
+
+def pwa_service_worker(request):
+    """站点根目录 /sw.js，作用域覆盖全站。"""
+    return HttpResponse(PWA_SW_JS, content_type="application/javascript; charset=utf-8")
+
+
+def pwa_icon(request, size):
+    """PWA 图标：/pwa/icon-192.png 等。"""
+    if size not in (180, 192, 512):
+        raise Http404("没有这个尺寸的图标")
+    path = Path(settings.BASE_DIR) / "static" / "pwa" / f"icon-{size}.png"
+    if not path.exists():
+        raise Http404("图标文件缺失")
+    return FileResponse(path.open("rb"), content_type="image/png")
