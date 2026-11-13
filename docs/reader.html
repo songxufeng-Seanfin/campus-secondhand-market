@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>闲小集 · 技术文档与博客</title>
+<style>
+  :root {
+    --bg: #f7f9fc; --surface: #ffffff; --ink: #172b4d; --muted: #5c6f8c;
+    --line: #e3ebf5; --brand: #1677ff; --brand-soft: #e8f3ff; --code-bg: #f4f7fb;
+    --radius: 14px; --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Microsoft YaHei", "Hiragino Sans GB", "Source Han Sans SC", sans-serif;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161d; --surface: #1a2029; --ink: #e6edf6; --muted: #9fb0c6;
+      --line: #2c3542; --brand: #6aa8ff; --brand-soft: #1c2c42; --code-bg: #141a22;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+    font-size: 15px; line-height: 1.85; }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .topbar { position: sticky; top: 0; z-index: 20; background: var(--surface);
+    border-bottom: 1px solid var(--line); padding: 14px 26px; display: flex;
+    align-items: center; gap: 22px; flex-wrap: wrap; }
+  .brand { font-size: 17px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+  .brand span { color: var(--brand); }
+  .tabs { display: flex; gap: 8px; }
+  .tab { border: 1px solid var(--line); background: transparent; color: var(--muted);
+    padding: 6px 16px; border-radius: 999px; cursor: pointer; font-size: 13.5px;
+    font-family: inherit; transition: .18s ease; }
+  .tab:hover { border-color: var(--brand); color: var(--brand); }
+  .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .meta { margin-left: auto; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+  .layout { display: flex; gap: 28px; max-width: 1240px; margin: 0 auto; padding: 28px 26px 80px; }
+  .toc { width: 236px; flex: none; position: sticky; top: 78px; align-self: flex-start;
+    max-height: calc(100vh - 110px); overflow-y: auto; padding-right: 8px; }
+  .toc-title { font-size: 12px; color: var(--muted); letter-spacing: 1.2px;
+    text-transform: uppercase; margin: 0 0 10px 10px; font-weight: 700; }
+  .toc-link { display: block; padding: 5px 10px; border-radius: 8px; color: var(--muted);
+    font-size: 13px; line-height: 1.5; border-left: 2px solid transparent; }
+  .toc-link:hover { background: var(--brand-soft); color: var(--brand); text-decoration: none; }
+  .toc-link.active { color: var(--brand); border-left-color: var(--brand);
+    background: var(--brand-soft); font-weight: 600; }
+  .toc-group { display: none; }
+  .toc-group.active { display: block; }
+  main { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 40px 48px 64px; }
+  article { display: none; }
+  article.active { display: block; }
+  h1 { font-size: 27px; line-height: 1.4; margin: 0 0 18px; letter-spacing: -.3px; }
+  h2 { font-size: 21px; margin: 46px 0 16px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--line); scroll-margin-top: 90px; }
+  .anchor { display: block; height: 0; scroll-margin-top: 90px; }
+  h3 { font-size: 17px; margin: 30px 0 12px; }
+  h4 { font-size: 15px; margin: 22px 0 10px; color: var(--muted); }
+  p { margin: 12px 0; }
+  strong { color: var(--ink); font-weight: 700; }
+  ul, ol { padding-left: 24px; margin: 12px 0; }
+  li { margin: 5px 0; }
+  hr { border: none; border-top: 1px solid var(--line); margin: 34px 0; }
+  blockquote { margin: 18px 0; padding: 12px 18px; background: var(--brand-soft);
+    border-left: 3px solid var(--brand); border-radius: 0 10px 10px 0; color: var(--ink); }
+  blockquote p { margin: 0; }
+  code { font-family: var(--mono); font-size: .9em; background: var(--code-bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 20px; overflow-x: auto; margin: 18px 0; line-height: 1.7; }
+  pre code { background: none; border: none; padding: 0; font-size: 12.5px; }
+  .table-wrap { overflow-x: auto; margin: 18px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { border: 1px solid var(--line); padding: 9px 13px; text-align: left;
+    vertical-align: top; line-height: 1.65; }
+  th { background: var(--brand-soft); font-weight: 700; white-space: nowrap; }
+  tbody tr:nth-child(even) { background: rgba(22, 119, 255, .035); }
+  .foot { text-align: center; color: var(--muted); font-size: 12.5px; padding: 0 26px 40px; }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; padding: 18px 14px 60px; gap: 14px; }
+    .toc { position: static; width: 100%; max-height: 190px; border: 1px solid var(--line);
+      border-radius: 10px; background: var(--surface); padding: 12px; }
+    main { padding: 24px 20px 44px; }
+    h1 { font-size: 22px; } h2 { font-size: 19px; }
+    .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">闲小集 <span>·</span> 项目文档</div>
+  <div class="tabs">
+    <button class="tab active" data-doc="tech">技术文档</button>
+    <button class="tab" data-doc="blog">博客文章</button>
+  </div>
+  <div class="meta">v1.0 · 2026-11-13 · commit 2103953</div>
+</div>
+<div class="layout">
+  <aside class="toc">
+    <div class="toc-title">目录</div>
+    <div class="toc-group active" data-group="tech"><a class="toc-link" href="#sec-1" data-target="sec-1">0. 这份文档怎么读</a>
+<a class="toc-link" href="#sec-3" data-target="sec-3">1. 项目概览</a>
+<a class="toc-link" href="#sec-4" data-target="sec-4">2. 第一层：从屏幕到服务器</a>
+<a class="toc-link" href="#sec-5" data-target="sec-5">3. 第二层：Django 收到请求之后的流水线</a>
+<a class="toc-link" href="#sec-6" data-target="sec-6">4. 第三层：项目骨架与文件职责</a>
+<a class="toc-link" href="#sec-7" data-target="sec-7">5. 第四层：数据层设计</a>
+<a class="toc-link" href="#sec-8" data-target="sec-8">6. 第五层：功能模块逐个拆解</a>
+<a class="toc-link" href="#sec-9" data-target="sec-9">7. 工程质量：安全、并发与性能</a>
+<a class="toc-link" href="#sec-10" data-target="sec-10">8. 部署与数据持久化</a>
+<a class="toc-link" href="#sec-11" data-target="sec-11">9. 踩坑复盘：六个真实问题</a>
+<a class="toc-link" href="#sec-12" data-target="sec-12">10. 术语速查表</a>
+<a class="toc-link" href="#sec-13" data-target="sec-13">11. 本地运行与常用命令</a>
+<a class="toc-link" href="#sec-14" data-target="sec-14">12. 可以继续加什么</a>
+<a class="toc-link" href="#sec-15" data-target="sec-15">附录 A：一次「收藏」点击的完整链路</a>
+<a class="toc-link" href="#sec-16" data-target="sec-16">附录 B：演示数据</a></div>
+    <div class="toc-group" data-group="blog"><a class="toc-link" href="#sec-1" data-target="sec-1">写在前面</a>
+<a class="toc-link" href="#sec-2" data-target="sec-2">一、先看成品：四块功能</a>
+<a class="toc-link" href="#sec-3" data-target="sec-3">二、技术选型：为什么是 Django</a>
+<a class="toc-link" href="#sec-4" data-target="sec-4">三、整个系统的骨架：一次点击走一圈</a>
+<a class="toc-link" href="#sec-5" data-target="sec-5">四、数据怎么设计：九张表撑起整个集市</a>
+<a class="toc-link" href="#sec-6" data-target="sec-6">五、几个让我真正理解 Web 的实现</a>
+<a class="toc-link" href="#sec-7" data-target="sec-7">六、最痛的一个坑：朋友发布的商品消失了</a>
+<a class="toc-link" href="#sec-8" data-target="sec-8">七、另外三个坑，每个都是一节课</a>
+<a class="toc-link" href="#sec-9" data-target="sec-9">八、手机端：一条栏和一个图标</a>
+<a class="toc-link" href="#sec-10" data-target="sec-10">九、怎么确认它「真的能用」</a>
+<a class="toc-link" href="#sec-11" data-target="sec-11">十、回头看：这个项目到底给了我什么</a>
+<a class="toc-link" href="#sec-12" data-target="sec-12">附：本地跑起来</a></div>
+  </aside>
+  <main>
+    <article id="doc-tech" class="active"><h1>闲小集 · 技术文档</h1>
+<blockquote><strong>版本</strong> v1.0 ｜ <strong>日期</strong> 2026-11-13 ｜ <strong>对应代码</strong> commit <code>2103953</code><br><strong>项目</strong> 校园二手交易平台（Django 5.2.19 + Python 3.13.14 + SQLite + Bootstrap 5.3.3 + Pillow 13.0.0）<br><strong>仓库</strong> https://github.com/songxufeng-Seanfin/campus-secondhand-market</blockquote>
+<hr>
+<span class="anchor" id="0-这份文档怎么读"></span>
+<h2 id="sec-1">0. 这份文档怎么读</h2>
+<p>这份文档按<strong>由外向内</strong>的顺序写：从你眼前的浏览器，一层层剥到硬盘里那个数据库文件。每一层先说「这一层在干什么」，再给专业名词的白话解释，最后才落到具体代码。</p>
+<p><strong>三种读法，按需挑一种：</strong></p>
+<div class="table-wrap"><table><thead><tr><th>想达到什么</th><th>读到哪里</th><th>读完能说什么</th></tr></thead><tbody><tr><td>大概知道项目怎么跑起来的</td><td>第 1～3 章</td><td>「一次刷新会发生什么、报错卡在哪一站」</td></tr><tr><td>知道每个功能是怎么做出来的</td><td>第 4～6 章</td><td>「收藏/私聊/下单分别改了哪些文件、为什么要这么写」</td></tr><tr><td>知道坑在哪、以后怎么防</td><td>第 7～9 章</td><td>「数据为什么会丢、403/404/405 到底是什么」</td></tr></tbody></table></div>
+<p><strong>两个约定，先说清楚：</strong></p>
+<ol><li>专业术语第一次出现时写成「<strong>术语</strong>（白话解释）」，例如「<strong>ORM</strong>（对象关系映射，把 Python 语句翻译成数据库指令的翻译官）」。看到不认识的词，翻第 10 章的速查表就行。</li><li>代码位置写成 <code>goods/views.py:44</code> 这样的格式，意思是「这个文件第 44 行」。不用现在去打开它，知道「这句话有出处」就够。</li></ol>
+<hr>
+<span class="anchor" id="目录"></span>
+<h2 id="sec-2">目录</h2>
+<ul><li><a href="#1-项目概览" target="_blank" rel="noopener">1. 项目概览</a></li><li><a href="#2-第一层从屏幕到服务器" target="_blank" rel="noopener">2. 第一层：从屏幕到服务器</a></li><li><a href="#3-第二层django-收到请求之后的流水线" target="_blank" rel="noopener">3. 第二层：Django 收到请求之后的流水线</a></li><li><a href="#4-第三层项目骨架与文件职责" target="_blank" rel="noopener">4. 第三层：项目骨架与文件职责</a></li><li><a href="#5-第四层数据层设计" target="_blank" rel="noopener">5. 第四层：数据层设计</a></li><li><a href="#6-第五层功能模块逐个拆解" target="_blank" rel="noopener">6. 第五层：功能模块逐个拆解</a></li><li><a href="#7-工程质量安全并发与性能" target="_blank" rel="noopener">7. 工程质量：安全、并发与性能</a></li><li><a href="#8-部署与数据持久化" target="_blank" rel="noopener">8. 部署与数据持久化</a></li><li><a href="#9-踩坑复盘六个真实问题" target="_blank" rel="noopener">9. 踩坑复盘：六个真实问题</a></li><li><a href="#10-术语速查表" target="_blank" rel="noopener">10. 术语速查表</a></li><li><a href="#11-本地运行与常用命令" target="_blank" rel="noopener">11. 本地运行与常用命令</a></li><li><a href="#12-可以继续加什么" target="_blank" rel="noopener">12. 可以继续加什么</a></li><li><a href="#附录-a一次收藏点击的完整链路" target="_blank" rel="noopener">附录 A：一次「收藏」点击的完整链路</a></li><li><a href="#附录-b演示数据" target="_blank" rel="noopener">附录 B：演示数据</a></li></ul>
+<hr>
+<span class="anchor" id="1-项目概览"></span>
+<h2 id="sec-3">1. 项目概览</h2>
+<p><strong>这一层讲什么</strong>：这个项目解决什么问题、最终做成了什么、用了哪些技术。 <strong>会碰到的新词</strong>：技术栈、框架、依赖、前后端。</p>
+<h3>1.1 解决什么问题</h3>
+<p>校园里买卖二手书、自行车、耳机，通常靠微信群刷屏：信息一闪就过、没法按分类找、也不好判断对方靠不靠谱。「闲小集」把它做成一个<strong>有商品列表、有详情页、能私聊议价、能下单、能互评</strong>的小集市，全部围绕「校内自提、学生之间交易」这个场景。</p>
+<h3>1.2 成品功能地图</h3>
+<p>十几页页面，其实可以归成四块，外加两层「外壳」：</p>
+<div class="table-wrap"><table><thead><tr><th>分块</th><th>包含的功能</th><th>对应页面</th></tr></thead><tbody><tr><td><strong>逛</strong></td><td>首页商品流、关键词搜索、分类筛选、上滑自动加载、商品详情（浏览量 / 同类推荐 / 留言板）、收藏</td><td><code>home.html</code>、<code>product_detail.html</code>、<code>favorites.html</code></td></tr><tr><td><strong>发</strong></td><td>登录注册、发布闲置（图片 / 定价 / 成色 / 地点 / 包邮）、编辑、下架、我的闲置</td><td><code>register.html</code>、<code>login.html</code>、<code>product_form.html</code>、<code>my_products.html</code></td></tr><tr><td><strong>聊与买</strong></td><td>「我想要」「直接购买」直达一对一私聊；会话顶部商品横幅与「立即购买」；下单双模式（面对面 / 线上），地址、运费、模拟支付；订单状态流转</td><td><code>chat_center.html</code>、<code>checkout.html</code>、<code>orders.html</code></td></tr><tr><td><strong>信用</strong></td><td>订单完成后买卖双方互评（1～5 星 + 评语）；卖家 / 买家公开主页展示好评率、均分、成交数、收到的评价</td><td><code>rating_form.html</code>、<code>seller_profile.html</code></td></tr><tr><td>手机外壳</td><td>窄屏专属底部 Tab 栏（首页 / 发布 / 消息 / 我的），未读红点、当前页高亮、安全区适配</td><td><code>base.html:401-439, 527-545</code></td></tr><tr><td>安装外壳</td><td>PWA（渐进式网页应用，可「添加到主屏幕」像 App 一样全屏打开）</td><td><code>base.html:9-16</code>、<code>goods/views.py:678-754</code></td></tr></tbody></table></div>
+<h3>1.3 成果与链接</h3>
+<div class="table-wrap"><table><thead><tr><th>项目</th><th>内容</th></tr></thead><tbody><tr><td>本地源码</td><td><code>C:\Users\SXF\WorkBuddy\2026-11-06-15-24-38\项目工作区\项目\campus-secondhand-market</code></td></tr><tr><td>GitHub</td><td>https://github.com/songxufeng-Seanfin/campus-secondhand-market</td></tr><tr><td>线上分享链接</td><td>https://xianxiaoji-market.app.workbuddy.host/?sharecode=LCIVOQTNSK</td></tr><tr><td>代码规模</td><td>主要源码文件约 5,300 行：模板约 3,400 行（含内嵌 CSS/JS）、Python 约 2,000 行</td></tr><tr><td>数据表</td><td>SQLite 单文件 <code>db.sqlite3</code>，9 张业务表</td></tr></tbody></table></div>
+<blockquote><strong>说明</strong>：线上链接是「跑起来的样子」，本机目录是「源码」，两者是同一份代码的两个视角。GitHub 仓库是第三份副本，用于版本存档。<strong>这三者的对应关系不讲，初学者很容易以为源码在网页里。</strong></blockquote>
+<h3>1.4 技术栈分层</h3>
+<p>从用户眼睛能看到的，一层层往里：</p>
+<div class="table-wrap"><table><thead><tr><th>层</th><th>技术 / 版本</th><th>白话：它管什么</th><th>在项目里的位置</th></tr></thead><tbody><tr><td>页面骨架</td><td>HTML5</td><td>页面上有哪些按钮、图片、文字</td><td><code>templates/*.html</code></td></tr><tr><td>页面长相</td><td>CSS3 + Bootstrap 5.3.3 + Bootstrap Icons 1.11.3</td><td>蓝色圆角、卡片、底部 Tab 栏；Bootstrap 是现成的样式零件库，从 CDN 引入</td><td><code>base.html:18-19</code>、各模板 <code>&lt;style&gt;</code> 块</td></tr><tr><td>页面动作</td><td>原生 JavaScript（AJAX / fetch / IntersectionObserver）</td><td>上滑加载更多、私聊消息自动刷新、发消息不整页跳</td><td><code>home.html:435-484</code>、<code>chat_center.html:453-541</code></td></tr><tr><td>Web 框架</td><td><strong>Django 5.2.19</strong></td><td>总调度：网址分派、登录、后台、防伪造提交、数据库读写</td><td><code>config/</code>、<code>goods/</code>、<code>accounts/</code></td></tr><tr><td>编程语言</td><td><strong>Python 3.13.14</strong></td><td>我们自己写的逻辑用的语言</td><td>所有 <code>.py</code> 文件</td></tr><tr><td>数据库</td><td><strong>SQLite 3</strong></td><td>账号、商品、订单、评价都存在一个文件里</td><td><code>db.sqlite3</code></td></tr><tr><td>图片处理</td><td><strong>Pillow 13.0.0</strong></td><td>生成演示封面图、生成 App 图标、裁切商品图</td><td><code>seed_demo.py:127-182</code>、<code>static/pwa/</code></td></tr></tbody></table></div>
+<p><strong>依赖清单极简</strong>（<code>requirements.txt</code>）：</p>
+<pre><code>Django==5.2.*
+Pillow</code></pre>
+<p>Bootstrap 走 CDN（内容分发网络，即别人服务器上托管好的公共文件），所以不用装前端构建工具，<strong>没有 npm、没有 webpack、没有前端工程化</strong>——这是本项目刻意保持的简单度。</p>
+<hr>
+<span class="anchor" id="2-第一层从屏幕到服务器"></span>
+<h2 id="sec-4">2. 第一层：从屏幕到服务器</h2>
+<p><strong>这一层讲什么</strong>：按一次刷新，背后发生了什么；那些看不懂的三位数报错，到底卡在哪一站。 <strong>会碰到的新词</strong>：请求、响应、状态码、客户端 / 服务端、CDN。</p>
+<h3>2.1 一次点击 = 跑一圈</h3>
+<p>整个网站所有变化，都是同一圈在反复跑：</p>
+<pre><code>你点一下 / 按 F5
+    ↓  浏览器发出「请求」（带上网址、填的表单、登录小票）
+服务器（一台一直开着、跑着我们代码的电脑）
+    ↓  照着网址跑一圈：安检 → 找路 → 干活 → 拼页面
+    ↑  回送「响应」：一份 HTML 文本
+浏览器把 HTML 画成页面</code></pre>
+<p><strong>关键认知</strong>：页面不会自己变。收藏数变了、来了条新消息，都是又跑了一圈（或由 JavaScript 悄悄再跑一小圈）。</p>
+<p><strong>一次刷新其实不止一圈</strong>：先取页面这一圈；页面里的 CSS、JS、商品图片又各自发请求去取。你只按了一下，背后是好几圈。</p>
+<h3>2.2 网址说了两件事</h3>
+<pre><code>https://xianxiaoji-market.app.workbuddy.host/product/8/
+└──────────── 找哪台服务器 ────────────┘└─ 找哪条路 ─┘</code></pre>
+<p>前半段由域名解析找到服务器；后半段 <code>/product/8/</code> 交给服务器里的<strong>路由表</strong>去分诊。这里的「路由」是网站内部的一张网址分诊表，<strong>不是家里那个路由器设备</strong>。</p>
+<h3>2.3 状态码：报错终于有位置了</h3>
+<div class="table-wrap"><table><thead><tr><th>代号</th><th>定义（永远不变）</th><th>本项目里那次的具体原因</th></tr></thead><tbody><tr><td><strong>404</strong></td><td>这条路没找到</td><td>线上数据被发布覆盖，商品 id 不存在了</td></tr><tr><td><strong>405</strong></td><td>路找到了，但<strong>请求方式不对</strong></td><td><code>rate</code> 被通配路由吞掉，落到只收 POST 的路上，GET 被拒</td></tr><tr><td><strong>403</strong></td><td>门卫不认凭证</td><td>公网域名没进受信任列表，手机登录带的一次性凭证被拦</td></tr><tr><td><strong>500</strong></td><td>里面某段代码执行出错</td><td>项目里没真正出现过；全站巡检就是专门查它</td></tr></tbody></table></div>
+<blockquote>记法：<strong>404 找不着路、405 方式不对、403 不让进、500 里面出错</strong>。<br>容易混的一点：「定义」和「那次为什么撞上」是两回事。「被覆盖」不是 404 的定义，只是那一次让路消失的原因；换任何一个不存在的商品，一样是 404。</blockquote>
+<hr>
+<span class="anchor" id="3-第二层django-收到请求之后的流水线"></span>
+<h2 id="sec-5">3. 第二层：Django 收到请求之后的流水线</h2>
+<p><strong>这一层讲什么</strong>：把上一章那「一圈」拆开，看框架内部怎么分活、怎么记住你是谁。 <strong>会碰到的新词</strong>：框架、MVT、中间件、Session / Cookie、CSRF、ORM、<code>request.user</code>。</p>
+<h3>3.1 「框架」和「工具」的区别</h3>
+<p><strong>Django 不是我们写的</strong>，是别人已经盖好水电的楼。登录注册、后台管理、门卫、数据库读写这些通用活它自带，我们只往里填「商品 / 订单 / 评价」这些房间。</p>
+<p>有个反转值得记：Pillow 那种<strong>工具</strong>是你叫它干活（说「裁图」，它就裁）；Django 这种<strong>框架</strong>反过来，<strong>是它来叫你</strong>——网址命中了，它跑去调我们写的那个函数。流程是框架定好的，我们只往固定格子里填内容。所以叫「框架」不叫「工具包」。</p>
+<p>Django 用的是 <strong>MVT（模型 - 模板 - 视图）</strong> 分层，和常见的 MVC 是同一类思想，只是名字不同：</p>
+<div class="table-wrap"><table><thead><tr><th>MVT</th><th>白话</th><th>文件</th></tr></thead><tbody><tr><td><strong>M</strong>odel 模型</td><td>数据长什么样、存在哪</td><td><code>models.py</code></td></tr><tr><td><strong>V</strong>iew 视图</td><td>收到请求后干什么活</td><td><code>views.py</code></td></tr><tr><td><strong>T</strong>emplate 模板</td><td>把数据摆成页面</td><td><code>templates/*.html</code></td></tr></tbody></table></div>
+<h3>3.2 六站流水线</h3>
+<div class="table-wrap"><table><thead><tr><th>站</th><th>名称</th><th>干什么</th><th>谁提供的</th></tr></thead><tbody><tr><td>1</td><td><strong>中间件</strong>（Middleware，请求进门先过的几道固定安检）</td><td>认出登录的人、验表单凭证</td><td>Django 自带，顺序写在 <code>settings.py:41-49</code></td></tr><tr><td>2</td><td><strong>路由</strong>（URLconf，网址分诊表）</td><td>这个网址交给哪个函数</td><td>我们写一张表 <code>goods/urls.py</code></td></tr><tr><td>3</td><td><strong>视图</strong>（View）</td><td>查什么数据、改成什么</td><td>我们写 <code>goods/views.py</code></td></tr><tr><td>4</td><td><strong>模型 / ORM → 数据库</strong></td><td>把 Python 翻成数据库指令，读写 <code>db.sqlite3</code></td><td>Django 翻译，表结构我们定</td></tr><tr><td>5</td><td><strong>模板</strong>（Template）</td><td>把数据排成 HTML</td><td>我们写 <code>templates/*.html</code></td></tr><tr><td>6</td><td><strong>响应</strong>（Response）</td><td>HTML 送回浏览器</td><td>Django 自带</td></tr></tbody></table></div>
+<p>看这张表能发现一件事：<strong>六格里真正属于我们写的只有中间四格，而且都是「填内容」，不是「造流程」</strong>。这就是「项目里自己的代码比看上去少得多」的原因。</p>
+<h3>3.3 四个关键词的白话版</h3>
+<ul><li><strong>Session / Cookie（会话 / 小票）</strong>：登录成功后服务器给浏览器一张小票，之后每次请求自动带着；服务器凭小票认出你是谁。这个被认出来的人，在代码里就叫 <strong><code>request.user</code></strong>。所以收藏按钮不用写用户名，也替不了别人收藏（<code>goods/views.py:541</code>）。</li><li><strong>CSRF（跨站请求伪造防护）</strong>：安检里的那个门卫。每个表单藏一张一次性凭证（<code>{% csrf_token %}</code>），确认「这请求真是我自己的页面发出的」。手机登录 403 那次，就是这张凭证和线上域名对不上。</li><li><strong>ORM（对象关系映射）</strong>：模型那一站的翻译官。我们只写「取这个用户收藏的商品」这样的 Python，不用手写 SQL（数据库查询语言），Django 负责翻译。</li><li><strong>上下文处理器</strong>（Context Processor）：网站自动塞给<strong>所有</strong>页面的现成信息。导航栏未读红点就是这么来的——写在 <code>goods/context_processors.py</code>，在 <code>settings.py:64</code> 注册一次，首页、详情页全都自动有。</li></ul>
+<h3>3.4 顺带解释那次最痛的事</h3>
+<p>朋友发布的商品不见了，<strong>不是代码写错，是「东西放在哪」的问题</strong>：数据库文件跟着项目目录走，发布时整个目录被覆盖，它就一起没了。后来把数据挪到发布目录之外（第 8 章），就再没丢过。这件事落在流水线的<strong>第 4 站</strong>。</p>
+<hr>
+<span class="anchor" id="4-第三层项目骨架与文件职责"></span>
+<h2 id="sec-6">4. 第三层：项目骨架与文件职责</h2>
+<p><strong>这一层讲什么</strong>：代码放在哪些文件里、各自管什么、为什么改了模型还要「迁移」。 <strong>会碰到的新词</strong>：应用（App）、迁移（Migration）、管理命令、模板继承。</p>
+<h3>4.1 目录树</h3>
+<pre><code>campus-secondhand-market/
+├── manage.py                    Django 命令行入口
+├── start.py                     线上启动脚本（数据持久化 + 迁移 + 起服务）
+├── requirements.txt             依赖清单
+├── config/                      项目级配置
+│   ├── settings.py              全局设置（数据库/中间件/安全/静态资源）
+│   ├── urls.py                  根路由表 + PWA 三个根路径 + 媒体文件
+│   └── wsgi.py / asgi.py        部署接口
+├── accounts/                    应用①：用户
+│   ├── models.py                自定义 User（扩展手机号、头像）
+│   ├── forms.py                 注册 / 登录表单
+│   ├── views.py                 注册、个人中心
+│   ├── urls.py                  登录登出（直接复用 Django 内置视图）
+│   └── migrations/0001_initial.py
+├── goods/                       应用②：商品与交易（项目主体）
+│   ├── models.py                9 张表中的 8 张
+│   ├── views.py                 所有业务逻辑（754 行）
+│   ├── urls.py                  20 条网址规则
+│   ├── forms.py                 商品发布表单 ModelForm
+│   ├── context_processors.py    全站未读红点
+│   ├── admin.py                 后台管理注册
+│   ├── templatetags/            模板自定义过滤器
+│   ├── migrations/0001~0004     四次数据库结构变更记录
+│   ├── management/commands/seed_demo.py   演示数据命令
+│   └── seed_images/             8 张实拍风演示图
+├── templates/                   15 个 .html（含共用外壳 base.html）+ 1 个局部片段
+│   └── base.html                所有页面共用的外壳（导航 / 样式 / 页脚 / Tab 栏）
+├── static/pwa/                  3 档 App 图标（180 / 192 / 512）
+├── media/                       用户上传的图片（线上不在这里，见第 8 章）
+└── db.sqlite3                   SQLite 数据库文件（线上不在这里）</code></pre>
+<h3>4.2 三个「应用」</h3>
+<p>Django 把一个大项目拆成若干 <strong>App（应用，可复用的功能模块）</strong>。本项目两个：</p>
+<ul><li><code>accounts</code>：只管「谁在用」——注册、登录、个人中心。</li><li><code>goods</code>：管「集市里发生的一切」——商品、订单、收藏、留言、私聊、评价。</li></ul>
+<p>登录登出甚至没自己写视图，直接复用 Django 内置的 <code>LoginView</code> / <code>LogoutView</code>（<code>accounts/urls.py:9-14</code>），这就是「框架自带水电」的意思。</p>
+<h3>4.3 迁移是什么</h3>
+<p>改了 <code>models.py</code>（比如给订单加「运费」字段），数据库不会自己变。<strong>迁移（Migration）</strong> 就是一份「数据库结构变更说明书」：</p>
+<pre><code>python manage.py makemigrations goods   # 对比模型与现有结构，生成一份变更说明书
+python manage.py migrate               # 按说明书真的去改数据库</code></pre>
+<p>项目里 <code>goods/migrations/</code> 有四份：</p>
+<div class="table-wrap"><table><thead><tr><th>文件</th><th>对应哪次功能</th></tr></thead><tbody><tr><td><code>0001_initial.py</code></td><td>分类、商品表</td></tr><tr><td><code>0002_...py</code></td><td>订单、收藏、商品留言</td></tr><tr><td><code>0003_...py</code></td><td>双模式交易（地址 / 运费 / 支付状态）</td></tr><tr><td><code>0004_rating.py</code></td><td>交易评价</td></tr></tbody></table></div>
+<p><strong>为什么要提交这些文件？</strong> 因为队友拉下代码后跑一次 <code>migrate</code>，就能得到一模一样的表结构；<code>start.py</code> 在线上启动时也是这么做的。</p>
+<h3>4.4 模板继承</h3>
+<p><code>base.html</code> 是<strong>所有页面共用的外壳</strong>：导航栏、设计变量、页脚、手机 Tab 栏、PWA 标签、Bootstrap 引入，全写在这一份里。其他模板第一行都是 <code>{% extends "base.html" %}</code>，只填中间那块内容。所以「加一条手机底部栏」只改一个文件，全站十几页就都有了。</p>
+<hr>
+<span class="anchor" id="5-第四层数据层设计"></span>
+<h2 id="sec-7">5. 第四层：数据层设计</h2>
+<p><strong>这一层讲什么</strong>：数据长什么样、表之间怎么连、为什么加约束、状态怎么流转。 <strong>会碰到的新词</strong>：表 / 字段 / 主键 / 外键、约束、索引、事务、状态机、聚合。</p>
+<h3>5.1 九张表与关系</h3>
+<div class="table-wrap"><table><thead><tr><th>表</th><th>白话：存什么</th><th>关键外键</th></tr></thead><tbody><tr><td><code>accounts_user</code></td><td>用户（用户名、密码哈希、手机号、头像）</td><td>—</td></tr><tr><td><code>goods_category</code></td><td>6 个分类（教材书籍 / 数码电子 / …）</td><td>—</td></tr><tr><td><code>goods_product</code></td><td>商品（标题、描述、售价、原价、成色、封面、地点、包邮设置、浏览量、是否售出）</td><td>→ 卖家、→ 分类</td></tr><tr><td><code>goods_order</code></td><td>订单（成交价快照、交易方式、收货信息、运费、支付状态、状态）</td><td>→ 商品、→ 买家、→ 卖家</td></tr><tr><td><code>goods_favorite</code></td><td>收藏（谁 + 哪件商品）</td><td>→ 用户、→ 商品</td></tr><tr><td><code>goods_productmessage</code></td><td>商品详情页的公开留言</td><td>→ 商品、→ 留言人</td></tr><tr><td><code>goods_conversation</code></td><td>一对一私聊会话</td><td>→ 商品、→ 买家、→ 卖家</td></tr><tr><td><code>goods_chatmessage</code></td><td>会话里的每条消息（含已读标记）</td><td>→ 会话、→ 发送者</td></tr><tr><td><code>goods_rating</code></td><td>交易互评（1～5 星 + 评语）</td><td>→ 订单、→ 评价人、→ 被评价人</td></tr></tbody></table></div>
+<p><strong>一句话串起来</strong>：一个用户发布多件商品 → 另一个用户对某件商品发起一个会话 → 聊完下一笔订单 → 订单完成后双方各留一条评价。<strong>所有功能都是这九张表在增删改查。</strong></p>
+<h3>5.2 订单状态机</h3>
+<p><strong>状态机</strong>（State Machine，规定「哪些状态能变成哪些状态」）写在 <code>goods/models.py:150-162</code>，视图里逐个校验：</p>
+<pre><code>pending   待卖家确认  ──卖家确认──→  accepted  待收货  ──确认收货──→  completed 已完成
+    │                                   │
+    ├──卖家拒绝──→ rejected              └──买家取消──→ cancelled
+    └──买家取消──→ cancelled</code></pre>
+<p>只有 <code>completed</code> 之后才能互评。完成后还会做两件联动：商品标记 <code>is_sold=True</code>，同一商品其他进行中订单自动关闭（<code>goods/views.py:507-517</code>）。</p>
+<h3>5.3 四处唯一约束</h3>
+<p><strong>约束（Constraint）</strong> 是数据库层的最后一道兜底，比在代码里写 <code>if</code> 可靠——连点两次、网络重试、两个请求同时到达，数据库也只让存一条。</p>
+<div class="table-wrap"><table><thead><tr><th>位置</th><th>约束</th><th>防什么</th></tr></thead><tbody><tr><td><code>Favorite</code> (<code>models.py:302-304</code>)</td><td><code>(user, product)</code> 唯一</td><td>重复收藏</td></tr><tr><td><code>Conversation</code> (<code>models.py:373-377</code>)</td><td><code>(product, buyer)</code> 唯一</td><td>同一件商品被拆成多条聊天</td></tr><tr><td><code>Order</code> (<code>models.py:225-231</code>)</td><td><code>(product, buyer)</code> 在 <code>status ∈ {pending, accepted}</code> 时唯一</td><td><strong>条件唯一约束</strong>：重复下单；但订单完成后允许再买别的</td></tr><tr><td><code>Rating</code> (<code>models.py:462-464</code>)</td><td><code>(order, rater)</code> 唯一</td><td>同一笔订单重复评价</td></tr></tbody></table></div>
+<h3>5.4 几个值得记住的设计决策</h3>
+<div class="table-wrap"><table><thead><tr><th>决策</th><th>为什么</th></tr></thead><tbody><tr><td>自定义用户模型（<code>AUTH_USER_MODEL = 'accounts.User'</code>）</td><td>项目起步就确定扩展点，避免后期迁移内置 User 表的高成本；Django 官方推荐实践</td></tr><tr><td>分类用独立表，不写死成下拉选项</td><td>后台可随时增删分类，筛选复用同一份数据</td></tr><tr><td>分类外键用 <code>PROTECT</code></td><td>误删分类不会让商品变成「孤儿数据」；卖家外键用 <code>CASCADE</code>，删用户连带删商品</td></tr><tr><td>订单存 <code>price</code> 快照，不实时读商品价</td><td>卖家后来改价，也不影响已成交订单</td></tr><tr><td>信用分不存用户表，实时 <code>aggregate()</code> 算</td><td>每笔成交最多 2 条评价，数据量极小；实时算可避免「双写不一致」</td></tr><tr><td>图片 <code>upload_to="products/%Y/%m/"</code></td><td>按年月分目录，避免单目录塞几万张图</td></tr></tbody></table></div>
+<hr>
+<span class="anchor" id="6-第五层功能模块逐个拆解"></span>
+<h2 id="sec-8">6. 第五层：功能模块逐个拆解</h2>
+<p><strong>这一层讲什么</strong>：每个功能「要做什么 / 用到什么 / 关键实现 / 防了什么坑」。建议先挑最短的 6.5 收藏看，附录 A 有它的逐站链路图。</p>
+<h3>6.1 注册登录与个人中心</h3>
+<ul><li><strong>做什么</strong>：注册后自动登录；登录 / 登出；个人中心显示我发布的、买到的、卖出的、收藏的数量。</li><li><strong>用到什么</strong>：Django 内置 <code>LoginView</code> / <code>LogoutView</code>、<code>RegisterForm</code>（<code>ModelForm</code>）、<code>@login_required</code> 装饰器。</li><li><strong>关键实现</strong>：<code>accounts/views.py:8-19</code> 校验通过后 <code>login(request, user)</code> 直接建立会话；<code>@login_required</code> 让未登录访问自动跳到 <code>LOGIN_URL</code>。</li><li><strong>防了什么</strong>：密码用 Django 内置哈希存储，代码里不出现明文密码。</li></ul>
+<h3>6.2 发布闲置与图片上传</h3>
+<ul><li><strong>做什么</strong>：填标题、分类、售价、原价、成色、描述、交易地点、包邮设置，上传封面图。</li><li><strong>用到什么</strong>：<code>ModelForm</code>（由模型自动生成表单）、<code>ImageField</code>、<code>request.FILES</code>。</li><li><strong>关键实现</strong>：<code>goods/forms.py</code> 给每个字段加 Bootstrap 类、写 <code>clean_price()</code> / <code>clean()</code> 做服务端校验（价格 &gt; 0、原价 &gt; 售价）；<code>goods/views.py:127-139</code> 用 <code>form.save(commit=False)</code> 先把 <code>seller</code> 设成当前登录用户再保存。</li><li><strong>防了什么</strong>：<strong>卖家永远取 <code>request.user</code></strong>，不信任前端传来的用户 ID，否则谁都能冒充别人发布。</li></ul>
+<h3>6.3 首页：搜索、筛选与上滑加载</h3>
+<ul><li><strong>做什么</strong>：每页 6 件商品，支持关键词、分类筛选，滑到底自动加载下一页。</li><li><strong>用到什么</strong>：<code>Q</code> 对象（构造「或」条件）、<code>Paginator</code>（分页器）、<code>IntersectionObserver</code>（浏览器自带的「元素进入视野」观察器）、局部模板。</li><li><strong>关键实现</strong>（<code>goods/views.py:44-81</code>、<code>home.html:435-484</code>）：</li><li>前端带 <code>X-Requested-With: XMLHttpRequest</code> 头请求下一页 → 后端只返回 <code>partials/product_cards.html</code> 片段，不重复传整页；</li><li>后端用两个自定义响应头 <code>X-Has-Next</code> / <code>X-Next-Page</code> 告诉前端还有没有下一页；</li><li>观察器盯住列表底部的哨兵元素，提前 240px 触发加载；老浏览器退化成滚动监听，加载失败还能回退到手动翻页。</li><li><strong>防了什么</strong>：<code>_base_queryset()</code> 用 <code>select_related</code> + <code>Prefetch</code> 一次性取好关联数据，避免列表页 <strong>N+1 查询</strong>（渲染 N 张卡片就查 N 次库）这个 Django 最经典的性能坑。</li></ul>
+<h3>6.4 商品详情</h3>
+<ul><li><strong>做什么</strong>：浏览量 +1、同类推荐 3 件、留言板、收藏按钮、卖家信用条。</li><li><strong>用到什么</strong>：<code>F()</code> 表达式、<code>refresh_from_db</code>、反向关联查询。</li><li><strong>关键实现</strong>：<code>goods/views.py:94</code> 用 <code>Product.objects.filter(pk=pk).update(views=F("views") + 1)</code> 把自增交给数据库原子执行。若写成 <code>product.views += 1; product.save()</code>，两个人同时打开就可能丢一次计数。</li><li><strong>防了什么</strong>：商品不存在时<strong>友好跳回首页并提示</strong>（<code>views.py:89-93</code>），而不是甩一张 404 错误页给从旧链接点进来的用户。</li></ul>
+<h3>6.5 收藏（最短的完整闭环）</h3>
+<ul><li><strong>做什么</strong>：一个按钮同时管「加收藏」和「取消收藏」。</li><li><strong>关键实现</strong>（<code>goods/views.py:536-547</code>）：<code>get_or_create()</code> 查得到就删、查不到就建；<code>redirect()</code> 而不是直接渲染（这个套路叫 <strong>PRG</strong>，Post/Redirect/Get，防止按 F5 重复提交）；<code>_safe_next()</code> 只允许站内相对路径跳转，防止 <code>next</code> 参数被拿去做开放重定向。</li><li><strong>防了什么</strong>：<code>@require_POST</code> 挡掉 GET 方式的误触发（浏览器预加载、搜索引擎爬过都会发 GET）；<code>{% csrf_token %}</code> 挡掉伪造提交。</li><li>完整逐站链路见 <strong>附录 A</strong>。</li></ul>
+<h3>6.6 私聊（微信式独立会话）</h3>
+<ul><li><strong>做什么</strong>：详情页「我想要」「直接购买」都进入同一个会话；左边会话列表、右边聊天窗；顶部固定商品横幅带橙色「立即购买」；对方消息自动出现。</li><li><strong>用到什么</strong>：<code>fetch</code>、<code>setInterval</code> 轮询、<code>JsonResponse</code>、<code>Subquery</code> / <code>annotate</code>、上下文处理器。</li><li><strong>关键实现</strong>：</li><li><code>chat_start</code> 用 <code>get_or_create(product, buyer)</code> 保证一个买家对一件商品只有一个会话（<code>views.py:222-225</code>）；</li><li>发消息用 <code>fetch</code> 提交 JSON，成功后局部插入气泡（<code>chat_center.html:505-525</code>）；</li><li>每 3 秒带 <code>after=最后一条消息ID</code> 请求 <code>/chat/&lt;id&gt;/poll/</code>，只拉新增消息（<code>views.py:322-343</code>、<code>chat_center.html:527-541</code>）——这是<strong>轮询</strong>（Polling），不是 WebSocket，够用且实现简单；</li><li>进入会话即把对方消息批量标为已读；导航 / Tab 栏红点由 <code>chat_notifications</code> 上下文处理器统一算。</li><li><strong>防了什么</strong>：<code>_conversation_or_404()</code> 校验「必须是买卖双方之一」，不是就返回 404（<strong>不返回 403，避免暴露这个会话存在</strong>）。</li></ul>
+<h3>6.7 下单：面对面 / 线上双模式</h3>
+<ul><li><strong>做什么</strong>：二选一。面对面=校内自提，不填地址不收运费；线上=填收货人 / 电话 / 地址，按卖家发布时设的「包邮 / 不包邮（¥8）」算运费，可立即模拟支付或稍后支付。</li><li><strong>用到什么</strong>：<code>transaction.atomic()</code>（事务，把几步操作包成「要么全成功要么全回滚」）、<code>IntegrityError</code> 捕获。</li><li><strong>关键实现</strong>：<code>goods/views.py:368-442</code>。服务端校验交易方式合法、线上模式收货三件套齐全；<code>Order.objects.create</code> 放在事务里，撞上条件唯一约束就捕获异常并提示「你已经下过单了」。</li><li><strong>防了什么</strong>：重复下单、卖家买自己商品、对已售 / 已预订商品下单；支付是<strong>演示级模拟</strong>，只改订单状态，不接真实支付渠道。</li></ul>
+<h3>6.8 订单状态流转</h3>
+<ul><li><strong>关键实现</strong>：<code>goods/views.py:473-522</code>，所有动作（<code>accept</code> / <code>reject</code> / <code>cancel</code> / <code>pay</code> / <code>complete</code>）在一个接口里按「身份 + 当前状态」双重判断，包在事务里。</li><li><strong>防了什么</strong>：<strong>前端藏按钮只是体验，不是安全边界</strong>——服务端逐个校验，买家不能去点「确认订单」，卖家不能替别人取消。</li></ul>
+<h3>6.9 信用体系：互评与公开主页</h3>
+<ul><li><strong>做什么</strong>：订单完成后买卖双方各给对方一次 1～5 星 + 评语；公开主页 <code>/u/&lt;id&gt;/</code> 显示好评率、均分、成交数、在售商品、收到的评价。</li><li><strong>关键实现</strong>：<code>order.can_rate(user)</code> 把「已完成 / 是当事人 / 没评过」三个条件收进模型（<code>models.py:277-281</code>）；<code>_user_credit()</code> 用 <code>aggregate(Count, Avg)</code> 实时算（<code>views.py:584-597</code>）；<code>seller_profile</code> 无需登录即可访问。</li><li><strong>防了什么</strong>：重复评价（唯一约束 + <code>IntegrityError</code> 双保险）、未完成订单评价、非当事人评价。</li><li><strong>一个真实的坑</strong>：<code>urls.py:24-26</code> 有注释——<code>orders/&lt;int:pk&gt;/rate/</code> 必须排在 <code>orders/&lt;int:pk&gt;/&lt;str:action&gt;/</code> <strong>前面</strong>，否则 <code>rate</code> 会被当成 <code>action</code> 吞掉，落到只收 POST 的路上，GET 评价页就变成 405。Django 路由<strong>从上往下匹配，第一条命中就停</strong>。</li></ul>
+<h3>6.10 手机端底部 Tab 栏</h3>
+<ul><li><strong>做什么</strong>：窄屏时贴底显示「首页 / 发布 / 消息 / 我的」，发布居中凸起，当前页高亮，消息带未读红点，聊天页自动隐藏。</li><li><strong>用到什么</strong>：<strong>CSS 媒体查询</strong>（<code>@media (max-width: 767.98px)</code>，一句「屏幕窄于某宽度才生效」的规则）、<code>env(safe-area-inset-bottom)</code> 适配全面屏下巴、上下文变量。</li><li><strong>关键实现</strong>：全部在 <code>base.html:401-439, 527-545</code>，<strong>没碰一行 Python，也没碰数据库</strong>——这就是模板继承的威力。</li><li><strong>防了什么</strong>：聊天页自己有输入条，用 <code>body.chat-app</code> 把 Tab 栏隐藏，避免两个底栏叠在一起。</li></ul>
+<h3>6.11 PWA：添加到主屏幕</h3>
+<ul><li><strong>做什么</strong>：手机「添加到主屏幕」后全屏打开，有独立品牌图标。</li><li><strong>用到什么</strong>：<code>manifest.webmanifest</code>（应用清单）、<code>sw.js</code>（<strong>Service Worker</strong>，浏览器后台的一段代理脚本）、3 档 PNG 图标（Pillow 画的纸箱笑脸）。</li><li><strong>关键实现</strong>：三个文件必须挂在<strong>站点根路径</strong>，Service Worker 的作用域才是整个站点（<code>config/urls.py:10-13</code>）；视图用 <code>JsonResponse</code> / <code>HttpResponse</code> / <code>FileResponse</code> 直接返回，不依赖静态文件收集（<code>views.py:737-754</code>）。</li><li><strong>防了什么（这条很关键）</strong>：SW <strong>只缓存站内图片，绝不缓存 HTML</strong>。因为页面里含一次性 CSRF 凭证，缓存旧页面会让凭证过期复用，重演手机登录 403。这是把前面的坑提前堵住，而不是等它再发生。</li></ul>
+<hr>
+<span class="anchor" id="7-工程质量安全并发与性能"></span>
+<h2 id="sec-9">7. 工程质量：安全、并发与性能</h2>
+<p><strong>这一层讲什么</strong>：不是「功能能不能用」，而是「会不会被人误用、会不会在高并发下算错、会不会越用越慢」。 <strong>会碰到的新词</strong>：越权、幂等、原子操作、N+1 查询、冒烟测试。</p>
+<div class="table-wrap"><table><thead><tr><th>措施</th><th>代码位置</th><th>解决什么问题</th></tr></thead><tbody><tr><td>CSRF 凭证 + 受信任来源</td><td><code>settings.py:26-27</code>、各表单 <code>{% csrf_token %}</code></td><td>伪造提交、跨站冒用登录态</td></tr><tr><td>身份一律取 <code>request.user</code></td><td><code>views.py:133, 409, 541</code></td><td>前端伪造用户 ID / 卖家 ID</td></tr><tr><td>越权校验</td><td><code>views.py:145, 160, 189-199, 641-647</code></td><td>改 / 删别人的商品、看别人的私聊、替别人评价</td></tr><tr><td>只认站内相对跳转</td><td><code>views.py:528-533</code></td><td>开放重定向（把用户带去钓鱼站）</td></tr><tr><td>条件唯一约束</td><td><code>models.py:225-231, 302-304, 373-377, 462-464</code></td><td>连点两次 / 并发请求产生脏数据</td></tr><tr><td>事务 <code>transaction.atomic()</code></td><td><code>views.py:406, 484</code></td><td>「下单」与「完成订单」的多步操作要么全成、要么全回滚</td></tr><tr><td><code>F()</code> 表达式自增</td><td><code>views.py:94</code></td><td>并发浏览量更新丢失</td></tr><tr><td>PRG（提交后重定向）</td><td><code>views.py:547, 578</code></td><td>刷新页面导致重复提交</td></tr><tr><td><code>select_related</code> / <code>Prefetch</code> / <code>Subquery</code> / <code>annotate</code></td><td><code>views.py:29-41, 228-246, 453-455</code></td><td>N+1 查询：列表页 / 订单页 / 会话列表不随数据量变慢</td></tr><tr><td>幂等演示数据命令</td><td><code>seed_demo.py:185-343</code></td><td>重复执行不产生重复数据、不覆盖用户已发布内容</td></tr></tbody></table></div>
+<h3>7.1 怎么验证「真的能用」</h3>
+<p>项目收尾时做过两类检查，都不是靠肉眼看页面：</p>
+<ol><li><strong>全站巡检</strong>：列出 21 个地址（首页、发布、详情、编辑、删除、下单、消息、会话、订单、评价、公开主页、登录注册、个人中心、manifest / sw.js / 3 个图标），用 Django 测试客户端（<code>django.test.Client</code>，能在不启服务器的情况下模拟浏览器发请求）以<strong>已登录 / 未登录两种状态各跑一遍</strong>，共 42 次请求，确认没有 500、图标不缺失、PWA 标签齐全。</li><li><strong>写操作冒烟测试</strong>（Smoke Test，只验证主链路通不通）：越权改别人商品 → 应被 404 拦；收藏加 / 删；留言写入；发私聊消息；完整走一遍「下单 → 卖家确认 → 完成 → 评价」。测试造出来的临时订单、留言、消息<strong>全部清理掉</strong>，不留脏数据。</li></ol>
+<blockquote>这两类检查就是「测试」的真实样子：模拟点一下按钮，然后断言结果对不对。名字唬人，内容很朴素。</blockquote>
+<hr>
+<span class="anchor" id="8-部署与数据持久化"></span>
+<h2 id="sec-10">8. 部署与数据持久化</h2>
+<p><strong>这一层讲什么</strong>：线上是怎么跑起来的，以及那个最痛的坑是怎么从根上修掉的。 <strong>会碰到的新词</strong>：环境变量、反向代理、持久化、DEBUG、种子数据。</p>
+<h3>8.1 本地运行</h3>
+<pre><code>pip install -r requirements.txt     # 装依赖（只有 Django 和 Pillow）
+python manage.py migrate           # 按迁移说明书建表
+python manage.py seed_demo         # 灌演示数据：6 分类 / 4 用户 / 8 商品 / 订单 / 留言 / 私聊 / 评价
+python manage.py runserver         # 启动开发服务器</code></pre>
+<p>然后访问 <code>http://127.0.0.1:8000</code>。模板改动不用重启服务，刷新即可；改了 <code>.py</code> 开发服务器会自动重载。</p>
+<h3>8.2 线上启动脚本做了什么</h3>
+<p>部署平台只注入一个 HTTP 端口（<code>PORT</code>），且启动命令里的 <code>$PORT</code> 不一定被 shell 展开，所以用 Python 写了 <code>start.py</code> 直接读环境变量。它按顺序做四件事：</p>
+<pre><code>① bootstrap_data_dir()  首次运行：把随代码上传的 db.sqlite3 / media 复制成种子
+                          （copytree 的 dirs_exist_ok=True 表示合并，不覆盖已有图片）
+② 设置 XJ_DATA_DIR      指向 ~/.xianxiaoji（发布目录之外）
+③ migrate + seed_demo   对齐表结构；幂等补齐演示数据（只补缺失，不动用户内容）
+④ os.execv(...)         用 Python 读到的 PORT 启 runserver，--noreload 常驻</code></pre>
+<h3>8.3 数据为什么会丢，又是怎么修的</h3>
+<p><strong>现象</strong>：朋友刚注册发布的两件商品，一次重新发布后不见了。</p>
+<p><strong>根因</strong>：<code>db.sqlite3</code> 和用户上传的 <code>media/</code> 原本都放在<strong>项目目录里</strong>。发布是「把整个源码目录覆盖上传」，于是数据库文件被随包附带的旧种子库覆盖——代码更新一次，真实数据就清零一次。这不是代码逻辑错，是<strong>存储位置错</strong>。</p>
+<p><strong>修法</strong>（<code>settings.py:12, 76, 103</code>）：</p>
+<pre><code>DATA_DIR = Path(os.environ.get(&quot;XJ_DATA_DIR&quot;) or BASE_DIR)
+DATABASES[&#x27;default&#x27;][&#x27;NAME&#x27;] = DATA_DIR / &#x27;db.sqlite3&#x27;
+MEDIA_ROOT = DATA_DIR / &#x27;media&#x27;</code></pre>
+<p>本地不设 <code>XJ_DATA_DIR</code> 时 <code>DATA_DIR</code> 就是项目目录，开发体验不变；线上由 <code>start.py</code> 指向 <code>~/.xianxiaoji</code>，<strong>代码目录怎么覆盖都碰不到数据</strong>。修完用「模拟连续发布两次」验证过，账号和商品都还在。</p>
+<blockquote>旧数据无法恢复（被覆盖后没有备份），这是本次项目唯一一次真实数据损失，也是代价最大的一课：<strong>数据必须和代码分开存放</strong>。</blockquote>
+<h3>8.4 可配置的环境变量</h3>
+<div class="table-wrap"><table><thead><tr><th>变量</th><th>作用</th><th>默认值</th></tr></thead><tbody><tr><td><code>XJ_DATA_DIR</code></td><td>数据库与上传图片的持久目录</td><td>项目根目录</td></tr><tr><td><code>XJ_SECRET_KEY</code></td><td>签名密钥（会话 / CSRF 都靠它）</td><td>开发用固定值</td></tr><tr><td><code>XJ_CSRF_ORIGINS</code></td><td>受信任来源，多个用英文逗号分隔</td><td>当前线上域名</td></tr><tr><td><code>PORT</code></td><td>HTTP 端口（由部署平台注入）</td><td><code>3000</code></td></tr></tbody></table></div>
+<h3>8.5 当前状态与生产化建议</h3>
+<p><code>DEBUG = True</code> 目前是<strong>刻意保留</strong>的：线上商品图由 runserver 的静态服务直接提供（<code>config/urls.py:20-21</code>），关掉 DEBUG 图片就会 404。若真要上生产，需要按顺序改四件事：</p>
+<ol><li>用 Nginx 托管 <code>MEDIA_ROOT</code>，然后关闭 <code>DEBUG</code>；</li><li><code>ALLOWED_HOSTS</code> 从 <code>['*']</code> 收紧到具体域名；</li><li><code>SECRET_KEY</code> 走环境变量，不写进仓库；</li><li>换 PostgreSQL / MySQL 并把 <code>runserver</code> 换成 gunicorn + WSGI。</li></ol>
+<hr>
+<span class="anchor" id="9-踩坑复盘六个真实问题"></span>
+<h2 id="sec-11">9. 踩坑复盘：六个真实问题</h2>
+<p><strong>这一层讲什么</strong>：把开发过程中真实撞到的坑，按「现象 → 根因 → 怎么查 → 怎么防」排成错题本。每个都是教科书级知识点，比刷教程记得牢。</p>
+<h3>9.1 手机登录 403</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>现象</td><td>电脑正常，手机点登录报 403</td></tr><tr><td>根因</td><td>站点在<strong>反向代理</strong>后面，浏览器带来的 <code>Origin</code> 是公网域名，没进 <code>CSRF_TRUSTED_ORIGINS</code>，Django 门卫不认这张凭证</td></tr><tr><td>怎么查</td><td>看请求头 <code>Origin</code> 与 <code>Referer</code>，对照 <code>settings.py</code> 的受信任列表</td></tr><tr><td>怎么防</td><td>加 <code>CSRF_TRUSTED_ORIGINS</code>，并改用环境变量 <code>XJ_CSRF_ORIGINS</code> 以便换域名；用带 <code>enforce_csrf_checks</code> 的测试客户端验证陌生 Origin 仍被拒</td></tr></tbody></table></div>
+<h3>9.2 点商品跳 404</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>现象</td><td>线上点某件商品直接 404</td></tr><tr><td>根因</td><td>数据库被发布覆盖，那个 <code>pk</code> 对应的商品已经不存在；模板里仍留着旧链接</td></tr><tr><td>怎么查</td><td>直接查库里 <code>Product.objects.filter(pk=...)</code> 是否存在</td></tr><tr><td>怎么防</td><td>详情页捕获 <code>Product.DoesNotExist</code> → 提示后跳首页（<code>views.py:89-93</code>）；启动时幂等补种子；<strong>根上是 8.3 的数据持久化</strong></td></tr></tbody></table></div>
+<h3>9.3 数据被发布覆盖（最痛的一次）</h3>
+<p>见 8.3。教训：<strong>代码可以反复覆盖，数据不可以</strong>。任何「发布 = 覆盖目录」的部署方式，都必须先把数据目录挪出去。</p>
+<h3>9.4 评价页变成 405</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>现象</td><td>打开 <code>/orders/12/rate/</code> 返回 405</td></tr><tr><td>根因</td><td>路由表里 <code>orders/&lt;int:pk&gt;/&lt;str:action&gt;/</code> 排在前面，<code>rate</code> 被当成 <code>action</code> 吞掉，落到 <code>order_action</code> 这个只收 POST 的视图上，GET 被拒</td></tr><tr><td>怎么查</td><td>打印实际命中的视图，比对 <code>urls.py</code> 顺序</td></tr><tr><td>怎么防</td><td>把具体路由 <code>orders/&lt;int:pk&gt;/rate/</code> 移到通配路由<strong>之前</strong>（<code>urls.py:24-26</code> 已留注释）；记住 Django 路由<strong>从上往下、首条命中即停</strong></td></tr></tbody></table></div>
+<h3>9.5 聊天页被压窄</h3>
+<div class="table-wrap"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>现象</td><td>微信式双栏聊天页在桌面端只占中间一条，左右留白巨大</td></tr><tr><td>根因</td><td>外层 <code>main { display: flex }</code> 让页面容器被当弹性子项收缩</td></tr><tr><td>怎么查</td><td>浏览器开发者工具看盒模型宽度</td></tr><tr><td>怎么防</td><td>改 <code>flex-direction: column</code>，让 <code>.page-wrap</code> 铺满宽度；聊天页用独立 <code>body.chat-app</code> 类控制布局</td></tr></tbody></table></div>
+<h3>9.6 PWA 缓存与 CSRF（预防性决策）</h3>
+<p>Service Worker 若缓存整个 HTML，页面里的一次性 CSRF 凭证会过期复用，等于把 9.1 的坑再踩一遍。因此 <code>sw.js</code> 明确跳过 <code>req.mode === 'navigate'</code> 与非 GET 请求，<strong>只缓存 <code>/media/</code> 和 <code>/pwa/</code> 下的图片</strong>（<code>views.py:716-721</code>）。这是「从坑里推出来的设计」，不是事后补丁。</p>
+<h3>9.7 一个假警报</h3>
+<p>用无头浏览器截图验证移动端时，发现「页面横向溢出」，后来确认是<strong>无头 Edge 最小窗宽 500px</strong> 造成的假象，不是 CSS 问题。用 500px 宽度单独截图后布局正常。教训：<strong>先确认测量工具本身的限制，再怀疑代码</strong>。</p>
+<hr>
+<span class="anchor" id="10-术语速查表"></span>
+<h2 id="sec-12">10. 术语速查表</h2>
+<p>按「白话 → 专业术语 → 项目里的位置」查：</p>
+<div class="table-wrap"><table><thead><tr><th>白话</th><th>专业术语</th><th>项目里的位置</th></tr></thead><tbody><tr><td>页面的半成品，留空格子等数据填</td><td>模板 Template / 模板继承</td><td><code>templates/base.html</code></td></tr><tr><td>网址分诊表</td><td>路由 URLconf</td><td><code>config/urls.py</code>、<code>goods/urls.py</code></td></tr><tr><td>干活的那一小段 Python</td><td>视图 View</td><td><code>goods/views.py</code></td></tr><tr><td>数据长什么样 / 存在哪</td><td>模型 Model / 数据库表</td><td><code>goods/models.py</code>、<code>db.sqlite3</code></td></tr><tr><td>表单提交</td><td>HTTP POST / Request</td><td>各模板 <code>&lt;form method="post"&gt;</code></td></tr><tr><td>服务器拼好送回来的 HTML</td><td>响应 Response / 渲染 Render</td><td><code>render(request, ...)</code></td></tr><tr><td>进门先过的固定安检</td><td>中间件 Middleware</td><td><code>settings.py:41-49</code></td></tr><tr><td>登录后发的那张小票</td><td>Session / Cookie</td><td>Django 自带</td></tr><tr><td>被认出来的登录用户</td><td><code>request.user</code></td><td><code>views.py</code> 到处都是</td></tr><tr><td>表单里的一次性凭证</td><td>CSRF Token</td><td><code>{% csrf_token %}</code></td></tr><tr><td>别让请求伪造 / 别让域名不认</td><td>CSRF / <code>CSRF_TRUSTED_ORIGINS</code></td><td><code>settings.py:26-27</code></td></tr><tr><td>把 Python 翻成数据库指令</td><td>ORM / QuerySet</td><td><code>models.py</code></td></tr><tr><td>数据库结构变更说明书</td><td>迁移 Migration</td><td><code>goods/migrations/</code></td></tr><tr><td>提交后重定向，防刷新重复提交</td><td>PRG</td><td><code>views.py:547</code></td></tr><tr><td>一次点击，几步操作要么全成要么全回滚</td><td>事务 <code>transaction.atomic()</code></td><td><code>views.py:406, 484</code></td></tr><tr><td>在数据库层原子自增</td><td><code>F()</code> 表达式</td><td><code>views.py:94</code></td></tr><tr><td>数据库层的兜底规矩</td><td>唯一约束 / 条件唯一约束</td><td><code>models.py:225-231</code> 等</td></tr><tr><td>规定状态只能怎么变</td><td>状态机 State Machine</td><td><code>models.py:150-162</code></td></tr><tr><td>渲染 N 条就查 N 次库的性能坑</td><td>N+1 查询</td><td>用 <code>Prefetch</code> / <code>Subquery</code> 规避</td></tr><tr><td>一次 JOIN 把关联对象取出来</td><td><code>select_related</code> / <code>prefetch_related</code></td><td><code>views.py:29-41</code></td></tr><tr><td>求和 / 平均 / 计数</td><td>聚合 <code>aggregate() / annotate()</code></td><td><code>views.py:584-597</code></td></tr><tr><td>窄屏才生效的样式规则</td><td>CSS 媒体查询 <code>@media</code></td><td><code>base.html:402</code></td></tr><tr><td>元素进入视野就触发</td><td><code>IntersectionObserver</code></td><td><code>home.html:472-478</code></td></tr><tr><td>定时去问有没有新消息</td><td>轮询 Polling</td><td><code>chat_center.html:541</code></td></tr><tr><td>只返回页面片段、不整页刷新</td><td>AJAX / 局部渲染</td><td><code>views.py:73-80</code></td></tr><tr><td>所有页面自动拿到的变量</td><td>上下文处理器 Context Processor</td><td><code>goods/context_processors.py</code></td></tr><tr><td>加到桌面像 App 一样打开</td><td>PWA / Service Worker / Manifest</td><td><code>views.py:678-754</code></td></tr><tr><td>模拟浏览器发请求做检查</td><td>测试客户端 <code>django.test.Client</code></td><td>全站巡检脚本</td></tr><tr><td>数据放在发布目录之外</td><td>持久化 / <code>XJ_DATA_DIR</code></td><td><code>settings.py:12</code>、<code>start.py</code></td></tr></tbody></table></div>
+<hr>
+<span class="anchor" id="11-本地运行与常用命令"></span>
+<h2 id="sec-13">11. 本地运行与常用命令</h2>
+<div class="table-wrap"><table><thead><tr><th>命令</th><th>白话：干了什么</th></tr></thead><tbody><tr><td><code>pip install -r requirements.txt</code></td><td>装两个依赖</td></tr><tr><td><code>python manage.py check</code></td><td>体检：配置有没有写错</td></tr><tr><td><code>python manage.py makemigrations goods</code></td><td>对比模型，生成一份结构变更说明书</td></tr><tr><td><code>python manage.py migrate</code></td><td>按说明书真的改数据库</td></tr><tr><td><code>python manage.py seed_demo</code></td><td>幂等灌演示数据（可反复跑）</td></tr><tr><td><code>python manage.py runserver</code></td><td>起本地服务器，开 8000 端口</td></tr><tr><td><code>python manage.py createsuperuser</code></td><td>建后台管理员，去 <code>/admin/</code> 管数据</td></tr><tr><td><code>python manage.py shell</code></td><td>进 Python 交互环境直接查数据</td></tr><tr><td><code>python start.py</code></td><td>线上入口：持久化 → 迁移 → 补种子 → 起服务</td></tr></tbody></table></div>
+<p>演示账号：<code>不想早八</code>、<code>阿橘不吃香菜</code>、<code>图书馆钉子户</code>、<code>考研失败选手</code>；统一密码写在 <code>seed_demo.py:45</code> 的 <code>DEMO_PASSWORD</code> 常量里。</p>
+<hr>
+<span class="anchor" id="12-可以继续加什么"></span>
+<h2 id="sec-14">12. 可以继续加什么</h2>
+<p>按难度分层，每一条都能独立做，不影响现有功能：</p>
+<div class="table-wrap"><table><thead><tr><th>难度</th><th>想法</th><th>会用到什么</th></tr></thead><tbody><tr><td>易</td><td>商品多图、举报入口、按价格 / 时间排序</td><td>加字段、加迁移、加筛选条件</td></tr><tr><td>易</td><td>个人资料编辑（手机号 / 头像）</td><td>再加一个 <code>ModelForm</code></td></tr><tr><td>中</td><td>图片压缩与缩略图</td><td>Pillow + Django 信号（<code>post_save</code>）</td></tr><tr><td>中</td><td>消息改成 WebSocket 实时推送</td><td>Django Channels；替换现在的 3 秒轮询</td></tr><tr><td>中</td><td>搜索加全文索引、热门关键词</td><td>数据库索引 / 搜索引擎</td></tr><tr><td>难</td><td>接真实支付、物流轨迹</td><td>第三方 SDK + 回调验签 + 状态机扩展</td></tr><tr><td>难</td><td>上生产：gunicorn + Nginx + PostgreSQL + 关 DEBUG</td><td>见 8.5</td></tr></tbody></table></div>
+<hr>
+<span class="anchor" id="附录-a一次收藏点击的完整链路"></span>
+<h2 id="sec-15">附录 A：一次「收藏」点击的完整链路</h2>
+<p>整个项目里最短、但五脏俱全的一条链路。理解它，就理解了所有功能。</p>
+<pre><code>① 浏览器  templates/product_detail.html:113-122
+   &lt;form method=&quot;post&quot; action=&quot;{% url &#x27;favorite_toggle&#x27; product.pk %}&quot;&gt;
+     {% csrf_token %}  &lt;button&gt;收藏这件好物&lt;/button&gt;
+   &lt;/form&gt;
+   ↓ 为什么用 post 不用 &lt;a href&gt;？因为点一下会改数据库；
+     链接会被浏览器预加载 / 刷新 / 爬虫误触发。
+
+② 路由    goods/urls.py:11
+   path(&quot;product/&lt;int:pk&gt;/favorite/&quot;, views.favorite_toggle, name=&quot;favorite_toggle&quot;)
+   把网址里的数字抓出来当 pk 交给视图（从上往下，首条命中即停）。
+   ↓
+③ 安检    settings.py:41-49
+   SessionMiddleware 认出你是谁 → CsrfViewMiddleware 验凭证。
+   ↓
+④ 视图    goods/views.py:536-547（真正的核心，只有 5 行）
+   favorite, created = Favorite.objects.get_or_create(user=request.user, product=product)
+   if created: 提示「已加入收藏」
+   else:       favorite.delete()          ← 一个接口同时管加和删
+   return redirect(...)                  ← PRG，防刷新重复提交
+   ↓
+⑤ 模型    goods/models.py:284-304
+   UniqueConstraint(fields=[&quot;user&quot;, &quot;product&quot;])   ← 数据库层兜底防重复
+   ORM 翻译成 INSERT / DELETE 写进 db.sqlite3
+   ↓
+⑥ 模板    views.py → product_detail 重新查 is_favorited
+   按钮文字变成「已收藏 · 点击取消」，收藏数 +1
+   ↓
+⑦ 响应    新的一份 HTML 送回浏览器，画成页面。一圈走完。</code></pre>
+<p><strong>这条链路里藏着五个知识点</strong>：POST 与 GET 的语义区别、CSRF、框架路由的匹配顺序、<code>get_or_create</code> 的幂等切换、PRG 与数据库唯一约束的双保险。其他十几个功能，都是这条链路换了张表和一段判断。</p>
+<hr>
+<span class="anchor" id="附录-b演示数据"></span>
+<h2 id="sec-16">附录 B：演示数据</h2>
+<p><code>python manage.py seed_demo</code> 生成（可重复执行，用 <code>get_or_create</code> 保证幂等）：</p>
+<div class="table-wrap"><table><thead><tr><th>数据</th><th>数量 / 内容</th></tr></thead><tbody><tr><td>分类</td><td>教材书籍、数码电子、运动出行、生活用品、服饰鞋包、乐器爱好</td></tr><tr><td>用户</td><td>3 个卖家 + 1 个买家，共 4 个演示账号</td></tr><tr><td>商品</td><td>8 件，配 <code>goods/seed_images/</code> 里的实拍风封面（高等数学、iPad、自行车、迷你冰箱、吉他、耳机、考研英语、篮球）</td></tr><tr><td>订单</td><td>2 笔进行中 + 1 笔已完成（已完成那笔带双方互评）</td></tr><tr><td>其他</td><td>4 条商品留言、2 个收藏、1 段 4 条的私聊（最后一条未读，用来演示红点）</td></tr></tbody></table></div>
+<blockquote>没有实拍图时会用 Pillow 现场画一张渐变封面兜底（<code>seed_demo.py:127-182</code>），所以团队任何人拉下代码，一条命令就能得到完整可演示的集市。</blockquote>
+<hr>
+<p><strong>文档结束。</strong> 建议的下一步：挑附录 A 那一格，在 <code>templates/product_detail.html:119</code> 把「收藏这件好物」改成自己想说的话，刷新页面看变化——整个项目就从「看懂」变成「改过」了。</p></article>
+    <article id="doc-blog"><h1>从 0 到 1：我用 Django 做了一个真的能交易的校园二手平台</h1>
+<blockquote><strong>闲小集</strong> · 一个面向学生的校园二手交易集市<br>技术栈：Python 3.13 / Django 5.2.19 / SQLite / Bootstrap 5 / Pillow<br>代码：主要文件约 5,300 行 · 9 张数据表 · 15 个页面模板<br>源码：https://github.com/songxufeng-Seanfin/campus-secondhand-market<br>在线：https://xianxiaoji-market.app.workbuddy.host/?sharecode=LCIVOQTNSK</blockquote>
+<hr>
+<span class="anchor" id="写在前面"></span>
+<h2 id="sec-1">写在前面</h2>
+<p>校园里卖闲置，大多靠群聊刷屏：一本书的照片发出来，三分钟就被新消息顶没了；想找辆自行车得翻半天聊天记录；交易全靠「你信我我也信你」。</p>
+<p>所以我想做的不是又一个「商品展示页」，而是一个<strong>能走完整条链路</strong>的小集市：从发布、浏览、议价，到下单、完成交易、互相评价。这篇文章记录它是怎么一层层搭起来的，也记录几个把我卡了很久的坑。</p>
+<p>如果你也在学 Web 开发，希望读完能带走一句话：<strong>一个网站看着有十几个功能，其实是同一套骨架重复搭了十几次。</strong></p>
+<hr>
+<span class="anchor" id="一先看成品四块功能"></span>
+<h2 id="sec-2">一、先看成品：四块功能</h2>
+<p>我没有按「页面」来规划，而是按「人在集市里干什么」分成四块：</p>
+<div class="table-wrap"><table><thead><tr><th>分块</th><th>能做什么</th></tr></thead><tbody><tr><td><strong>逛</strong></td><td>首页商品流、关键词搜索、分类筛选、上滑自动加载、商品详情（浏览量 / 同类推荐 / 留言板）、一键收藏</td></tr><tr><td><strong>发</strong></td><td>注册登录、发布闲置（图片、定价、成色、交易地点、包邮设置）、编辑下架、我的闲置</td></tr><tr><td><strong>聊与买</strong></td><td>「我想要」「直接购买」直达一对一私聊；会话顶部钉着商品横幅和「立即购买」；下单可选<strong>面对面</strong>或<strong>线上</strong>，填地址、算运费、模拟支付；订单状态流转</td></tr><tr><td><strong>信用</strong></td><td>交易完成后买卖双方互评 1～5 星；公开主页展示好评率、均分、成交数、收到的评价</td></tr></tbody></table></div>
+<p>外面再套两层壳：手机端底部 Tab 栏，以及「添加到主屏幕」后像 App 一样全屏打开（PWA）。</p>
+<hr>
+<span class="anchor" id="二技术选型为什么是-django"></span>
+<h2 id="sec-3">二、技术选型：为什么是 Django</h2>
+<p>先说一个我后来才想明白的区别：<strong>工具是你叫它干活，框架是它来叫你。</strong></p>
+<p>Pillow（Python 的图片处理库）是工具——我说「把这张图裁成 1200×900」，它裁完就完事。Django 是<strong>框架</strong>：网址命中了，它反过来去调用我写的那个函数。流程、登录、后台、防伪造提交、数据库读写，全是它自带的；我只往固定格子里填「商品 / 订单 / 评价」这些房间。</p>
+<p>这带来的直接好处是：<strong>依赖只有两个</strong>。</p>
+<pre><code>Django==5.2.*
+Pillow</code></pre>
+<p>没有 npm、没有 webpack、没有前端构建。Bootstrap 5 和图标库从 CDN（内容分发网络，别人托管好的公共文件）直接引用，样式写在模板里。对一个练手项目来说，这个简单度非常关键——我不用先学会五套工具链，才能看到第一个页面。</p>
+<p>Django 用的是 <strong>MVT</strong> 分层，说白了就是把事情拆成三份：</p>
+<ul><li><strong>M（Model 模型）</strong>：数据长什么样、存在哪 → <code>models.py</code></li><li><strong>V（View 视图）</strong>：收到请求后干什么活 → <code>views.py</code></li><li><strong>T（Template 模板）</strong>：把数据摆成页面 → <code>templates/*.html</code></li></ul>
+<p>数据库选了 <strong>SQLite</strong>：整个库就是一个 <code>db.sqlite3</code> 文件，零配置、能直接拷走。对本地开发和演示足够，后期换 MySQL / PostgreSQL 也只是改 <code>settings.py</code> 里的一个配置。</p>
+<hr>
+<span class="anchor" id="三整个系统的骨架一次点击走一圈"></span>
+<h2 id="sec-4">三、整个系统的骨架：一次点击走一圈</h2>
+<p>这是我觉得最值钱的一张图，因为<strong>所有功能都是这一圈在反复跑</strong>：</p>
+<pre><code>你点一下按钮
+   ↓  浏览器发出「请求」：网址 + 表单内容 + 登录小票
+服务器照着网址跑一圈
+   安检 → 路由分诊 → 视图干活 → 读写数据库 → 模板拼页面
+   ↑  回送「响应」：一份 HTML
+浏览器把 HTML 画成页面</code></pre>
+<p>页面不会自己变。收藏数变了、来了条新消息，都是又跑了一圈（或由 JavaScript 悄悄再跑一小圈）。而且一次刷新其实<strong>不止一圈</strong>：先取页面，页面里的 CSS、脚本、商品图片又各自发请求去取。</p>
+<p>把 Django 内部那一圈拆开，是六站：</p>
+<div class="table-wrap"><table><thead><tr><th>站</th><th>干什么</th><th>谁提供的</th></tr></thead><tbody><tr><td>1 中间件</td><td>认出登录的人、验表单凭证</td><td>Django 自带</td></tr><tr><td>2 路由</td><td>这个网址交给哪个函数</td><td>我写一张表</td></tr><tr><td>3 视图</td><td>查什么数据、改成什么</td><td>我写</td></tr><tr><td>4 模型 / 数据库</td><td>把 Python 翻成数据库指令</td><td>Django 翻译，表结构我定</td></tr><tr><td>5 模板</td><td>把数据排成 HTML</td><td>我写</td></tr><tr><td>6 响应</td><td>送回浏览器</td><td>Django 自带</td></tr></tbody></table></div>
+<p><strong>六站里真正属于我写的只有中间四格，而且都是「填内容」，不是「造流程」。</strong> 想通这一点，项目一下子从「五千行天书」变成了「四格填空」。</p>
+<p>顺带，那些曾经看不懂的三位数报错，也终于有位置了：</p>
+<div class="table-wrap"><table><thead><tr><th>代号</th><th>意思</th><th>我这次撞上的具体原因</th></tr></thead><tbody><tr><td><strong>404</strong></td><td>找不着路</td><td>线上数据被发布覆盖，那个商品 id 不存在了</td></tr><tr><td><strong>405</strong></td><td>路找到了，方式不对</td><td><code>rate</code> 被通配路由吞掉，落到只收 POST 的路上</td></tr><tr><td><strong>403</strong></td><td>门卫不认凭证</td><td>公网域名没进受信任列表，手机登录被拦</td></tr><tr><td><strong>500</strong></td><td>里面某段代码出错</td><td>没真出现过，全站巡检专门查它</td></tr></tbody></table></div>
+<p>记法：<strong>404 找不着路、405 方式不对、403 不让进、500 里面出错</strong>。要注意「代号的定义」和「那次为什么撞上」是两回事——「被覆盖」不是 404 的定义，只是那一次让路消失的原因。</p>
+<hr>
+<span class="anchor" id="四数据怎么设计九张表撑起整个集市"></span>
+<h2 id="sec-5">四、数据怎么设计：九张表撑起整个集市</h2>
+<p>想清楚「存什么」，功能就成型了一半。九张表：用户、分类、商品、订单、收藏、商品留言、私聊会话、会话消息、交易评价。</p>
+<p>一句话串起来：<strong>一个用户发布多件商品 → 另一个用户对某件商品发起一个会话 → 聊完下一笔订单 → 完成后双方各留一条评价。</strong></p>
+<h3>订单是个状态机</h3>
+<p><strong>状态机</strong>就是规定「哪些状态能变成哪些状态」：</p>
+<pre><code>pending 待确认 ──卖家确认──→ accepted 待收货 ──确认收货──→ completed 已完成
+    │                            │
+    ├──卖家拒绝──→ rejected      └──买家取消──→ cancelled
+    └──买家取消──→ cancelled</code></pre>
+<p>只有走到 <code>completed</code> 才能互评。完成那一刻还会做两件联动：商品标记「已售出」，同一件商品其他进行中的订单自动关闭——不然一件东西会被卖给两个人。</p>
+<h3>四个唯一约束</h3>
+<p><strong>约束</strong>是数据库层的最后一道兜底，比在代码里写 <code>if</code> 可靠：连点两次、网络重试、两个请求同时到达，数据库也只让存一条。</p>
+<div class="table-wrap"><table><thead><tr><th>约束</th><th>防什么</th></tr></thead><tbody><tr><td><code>(用户, 商品)</code> 收藏唯一</td><td>重复收藏</td></tr><tr><td><code>(商品, 买家)</code> 会话唯一</td><td>同一件商品被拆成好几条聊天</td></tr><tr><td><code>(商品, 买家)</code> <strong>在订单进行中时</strong>唯一</td><td>重复下单；但订单结束后允许再买</td></tr><tr><td><code>(订单, 评价人)</code> 唯一</td><td>一笔订单重复评价</td></tr></tbody></table></div>
+<p>第三条是<strong>条件唯一约束</strong>（只在满足条件的行上生效），写起来是这样：</p>
+<pre><code>models.UniqueConstraint(
+    fields=[&quot;product&quot;, &quot;buyer&quot;],
+    condition=Q(status__in=[&quot;pending&quot;, &quot;accepted&quot;]),
+    name=&quot;uniq_active_order_per_buyer_product&quot;,
+)</code></pre>
+<p>另外两个我挺喜欢的小决策：</p>
+<ul><li><strong>订单存成交价快照</strong>，不实时读商品价——卖家后来改价，不影响已成交的订单；</li><li><strong>信用分不存用户表</strong>，用 <code>aggregate(Count, Avg)</code> 实时算——每笔成交最多 2 条评价，数据量极小，实时算反而避免了「两处数据对不上」。</li></ul>
+<hr>
+<span class="anchor" id="五几个让我真正理解-web-的实现"></span>
+<h2 id="sec-6">五、几个让我真正理解 Web 的实现</h2>
+<h3>1）收藏：最短的一条完整闭环</h3>
+<p>它是全项目最短、但五脏俱全的功能，五站全走一遍：</p>
+<pre><code># goods/views.py
+favorite, created = Favorite.objects.get_or_create(
+    user=request.user, product=product
+)
+if created:
+    messages.success(request, &quot;已加入收藏&quot;)
+else:
+    favorite.delete()          # 一个接口同时管「加」和「删」
+return redirect(...)           # 提交后重定向，防刷新重复提交</code></pre>
+<ul><li>表单用 <code>method="post"</code> 而不是链接：因为点一下会改数据库，链接会被浏览器预加载 / 刷新 / 爬虫误触发；</li><li><code>{% csrf_token %}</code> 藏一张一次性凭证，确认「这请求真是我自己的页面发的」；</li><li>用户身份取 <code>request.user</code>（服务器从登录态认出来的人），<strong>不信任前端传的用户名</strong>，否则谁都能替别人收藏；</li><li><code>redirect</code> 而不是直接渲染（这个套路叫 <strong>PRG</strong>），按 F5 不会重复提交。</li></ul>
+<p>其他十几个功能，都是这条链路换了张表和一段判断。</p>
+<h3>2）上滑自动加载</h3>
+<p>首页每页 6 件。前端用浏览器自带的 <code>IntersectionObserver</code>（元素进入视野就通知）盯住列表底部的哨兵，提前 240px 触发；请求时带一个 <code>X-Requested-With</code> 头，后端就<strong>只返回商品卡片片段</strong>，不重复传整页；再用两个自定义响应头 <code>X-Has-Next</code> / <code>X-Next-Page</code> 告诉前端还有没有下一页。</p>
+<p>老浏览器退化成滚动监听，加载失败还能回退到手动翻页——<strong>降级方案</strong>比主方案更容易被忽略，但它决定了用户会不会卡死在空白页。</p>
+<h3>3）私聊：轮询就够了</h3>
+<p>详情页「我想要」和「直接购买」进的是<strong>同一个会话</strong>（靠唯一约束保证）。聊天页是微信式双栏：左边会话列表，右边对话窗，顶部钉着商品横幅和橙色「立即购买」。</p>
+<p>发消息用 <code>fetch</code> 局部插入气泡，不整页刷新；每 3 秒带「最后一条消息 ID」去问一次有没有新消息，只拉增量。这叫<strong>轮询（Polling）</strong>，不是 WebSocket，但对校园集市这个量级完全够用，实现也简单得多。</p>
+<p>未读红点没有单独做通知表：<code>ChatMessage</code> 上有个 <code>is_read</code> 字段，再用<strong>上下文处理器</strong>（自动塞给所有页面的变量）统一算一次，导航栏和手机 Tab 栏就都有了。</p>
+<h3>4）下单双模式与服务端校验</h3>
+<p>面对面交易 = 校内自提，不填地址不收运费；线上交易 = 填收货人 / 电话 / 地址，按卖家发布时设的「包邮 / 不包邮（¥8）」算运费，可立即模拟支付。</p>
+<p>下单动作包在 <code>transaction.atomic()</code>（<strong>事务</strong>：几步操作要么全成功要么全回滚）里，撞上唯一约束就捕获 <code>IntegrityError</code> 并提示「你已经下过单了」。订单状态流转同理，所有动作都按「身份 + 当前状态」双重判断——<strong>前端藏按钮只是体验，不是安全边界</strong>，服务端必须自己再验一遍。</p>
+<hr>
+<span class="anchor" id="六最痛的一个坑朋友发布的商品消失了"></span>
+<h2 id="sec-7">六、最痛的一个坑：朋友发布的商品消失了</h2>
+<p>这个必须单独写一节。</p>
+<p>朋友在线上注册、发了两件商品，我更新了一版代码重新发布，商品没了。</p>
+<p><strong>根因不是代码写错，是「东西放在哪」错了</strong>：<code>db.sqlite3</code> 和用户上传的 <code>media/</code> 原本都放在项目目录里，而发布是「把整个源码目录覆盖上传」。于是每次更新代码，随包附带的旧数据库就把真实数据冲掉了。代码可以反复覆盖，<strong>数据不可以</strong>。</p>
+<p>修法是把数据和代码分开：</p>
+<pre><code># config/settings.py
+DATA_DIR = Path(os.environ.get(&quot;XJ_DATA_DIR&quot;) or BASE_DIR)
+DATABASES[&quot;default&quot;][&quot;NAME&quot;] = DATA_DIR / &quot;db.sqlite3&quot;
+MEDIA_ROOT = DATA_DIR / &quot;media&quot;</code></pre>
+<p>本地不设 <code>XJ_DATA_DIR</code> 时，数据仍在项目目录，开发体验不变；线上启动脚本把它指向 <code>~/.xianxiaoji</code>（发布目录之外），<strong>源码目录怎么覆盖都碰不到数据</strong>。修完我模拟连续发布两次验证，账号和商品都还在。</p>
+<p>旧数据没能恢复——被覆盖后没有备份。这是整个项目代价最大的一课，也是我现在做任何项目都会先问的一句：<strong>这个东西会被重新部署冲掉吗？</strong></p>
+<p>顺带一提，线上启动脚本 <code>start.py</code> 也踩了个小坑：部署平台只注入一个 <code>PORT</code> 环境变量，而启动命令里的 <code>$PORT</code> 不一定会被 shell 展开，所以最后用 Python 直接 <code>os.environ.get("PORT")</code> 读，再启服务。</p>
+<hr>
+<span class="anchor" id="七另外三个坑每个都是一节课"></span>
+<h2 id="sec-8">七、另外三个坑，每个都是一节课</h2>
+<p><strong>手机登录 403</strong>：电脑正常、手机不行。因为站点在反向代理后面，浏览器带来的 <code>Origin</code> 是公网域名，没进 <code>CSRF_TRUSTED_ORIGINS</code>，Django 的门卫不认那张凭证。加上受信任来源后就好了，我还把它改成可配置的环境变量，换域名不用改代码。</p>
+<p><strong>点商品 404</strong>：和上面那个数据丢失是同一根。除了根治存储位置，详情页也加了兜底——商品不存在时提示后跳回首页，而不是甩一张错误页给从旧链接点进来的用户。</p>
+<p><strong>评价页 405</strong>：路由表里 <code>orders/&lt;id&gt;/&lt;str:action&gt;/</code> 写在前面，<code>rate</code> 被当成 action 吞掉，落到只收 POST 的视图上，GET 就被拒。Django 路由<strong>从上往下匹配，第一条命中就停</strong>，把具体路由挪到通配路由前面就好了（代码里留了注释，防止以后再犯）。</p>
+<p>还有一个<strong>预防性设计</strong>值得记：做 PWA 时，Service Worker（浏览器后台的代理脚本）<strong>只缓存站内图片，绝不缓存 HTML</strong>。因为页面里含一次性 CSRF 凭证，缓存旧页面会让凭证过期复用，等于把 403 那个坑再踩一遍。把前面的教训提前堵住，比事后修舒服得多。</p>
+<p>最后是个假警报：用无头浏览器验证手机端时看到「横向溢出」，紧张了半天，结果是<strong>无头 Edge 最小窗宽 500px</strong> 造成的假象，不是 CSS 问题。教训：先确认测量工具本身的限制，再怀疑代码。</p>
+<hr>
+<span class="anchor" id="八手机端一条栏和一个图标"></span>
+<h2 id="sec-9">八、手机端：一条栏和一个图标</h2>
+<p>顶部导航在手机上很挤，常用的四个入口要一步点到。于是加了贴底 Tab 栏「首页 / 发布 / 消息 / 我的」，发布居中凸起，当前页高亮，消息带未读红点。</p>
+<p>实现全在 <code>base.html</code> 一份文件里：用 <strong>CSS 媒体查询</strong>（一句「屏幕窄于 767px 才生效」的规则）控制显示，<code>env(safe-area-inset-bottom)</code> 适配全面屏下巴，聊天页因为有输入条就自动隐藏。因为所有页面都继承这份外壳，<strong>改一处，十几页全都有了，一行 Python 都没动</strong>。</p>
+<p>PWA 那部分则是三个根路径文件：<code>manifest.webmanifest</code>（应用清单，声明全屏启动和图标）、<code>sw.js</code>（缓存脚本）、三档品牌图标（Pillow 画的纸箱笑脸）。挂到根路径是为了让 Service Worker 的作用域覆盖整个站点。</p>
+<hr>
+<span class="anchor" id="九怎么确认它真的能用"></span>
+<h2 id="sec-10">九、怎么确认它「真的能用」</h2>
+<p>我没有只靠肉眼看页面。收尾时做了两类检查：</p>
+<ol><li><strong>全站巡检</strong>：列出 21 个地址，用 Django 的测试客户端（<code>django.test.Client</code>，不启服务器也能模拟浏览器发请求）在<strong>已登录 / 未登录两种状态各跑一遍</strong>，共 42 次请求，确认没有 500、图标不缺、PWA 标签齐全；</li><li><strong>写操作冒烟测试</strong>：越权改别人商品应被 404 拦、收藏加 / 删、留言写入、发私聊消息、完整走一遍「下单 → 卖家确认 → 完成 → 评价」。测完把造出来的临时订单、留言、消息全清掉，不留脏数据。</li></ol>
+<p>外加桌面 / 手机两种宽度的截图核对布局。所谓「测试」，说白了就是：<strong>模拟点一下按钮，然后检查结果对不对</strong>——名字唬人，内容很朴素。</p>
+<hr>
+<span class="anchor" id="十回头看这个项目到底给了我什么"></span>
+<h2 id="sec-11">十、回头看：这个项目到底给了我什么</h2>
+<p>功能清单可以罗列很长，但真正留下的是三样东西。</p>
+<p><strong>第一，学会按「层」看东西。</strong> 以前看到一个页面是一整块；现在会自动拆：谁画的（HTML/CSS）、网址交给谁（路由）、干了什么活（视图）、存在哪（模型 / 数据库）。拆开之后，报错不再是天书，而是「卡在第几站」。</p>
+<p><strong>第二，知道「防」比「做」更花时间。</strong> 收藏按钮真正的核心只有 5 行，但 POST 而非 GET、CSRF 凭证、<code>request.user</code>、唯一约束、PRG、相对跳转校验，全是围着这 5 行加的。写代码几分钟，验证和兜底是它的好几倍。</p>
+<p><strong>第三，需求的判断力是练出来的。</strong> 从「私聊要像微信那样是独立界面、还要能和不同商品不同买家聊」到「会话顶部要有商品横幅和直接购买」，这些不是语法问题，是把一个模糊的想法拆成表、路由、视图、模板四格的能力。</p>
+<p>下一步打算做的：多图上传、个人资料编辑、把 3 秒轮询换成 WebSocket 实时推送，以及真正上生产（gunicorn + Nginx + PostgreSQL、关掉 DEBUG）。每一条都能独立做，不影响现有功能。</p>
+<hr>
+<span class="anchor" id="附本地跑起来"></span>
+<h2 id="sec-12">附：本地跑起来</h2>
+<pre><code>pip install -r requirements.txt
+python manage.py migrate
+python manage.py seed_demo
+python manage.py runserver</code></pre>
+<p>打开 <code>http://127.0.0.1:8000</code>。演示数据包含 6 个分类、4 个账号、8 件带封面的商品，以及订单 / 留言 / 私聊 / 评价，一条命令就是一个完整集市。</p>
+<p>如果你也是刚入门，我的建议是：<strong>先别急着读完整份代码。</strong> 挑最短的「收藏」按钮，看一次点击怎么走完那六站，改一句中文，刷新看变化。整个项目就是从这一格开始，慢慢长出来的。</p>
+<hr>
+<p><em>项目代码与完整技术文档见仓库 <code>docs/technical-doc.md</code>。</em></p></article>
+  </main>
+</div>
+<div class="foot">闲小集 · 校园二手交易平台　|　文档随代码存于 docs/ 目录，离线可读</div>
+<script>
+(function () {
+  var tabs = document.querySelectorAll('.tab');
+  var articles = document.querySelectorAll('article');
+  var groups = document.querySelectorAll('.toc-group');
+  function switchTo(name) {
+    tabs.forEach(function (t) { t.classList.toggle('active', t.dataset.doc === name); });
+    articles.forEach(function (a) { a.classList.toggle('active', a.id === 'doc-' + name); });
+    groups.forEach(function (g) { g.classList.toggle('active', g.dataset.group === name); });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try { localStorage.setItem('xj-doc-tab', name); } catch (e) {}
+  }
+  tabs.forEach(function (t) { t.addEventListener('click', function () { switchTo(t.dataset.doc); }); });
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('.toc-link');
+    if (!link) return;
+    e.preventDefault();
+    var target = document.getElementById(link.dataset.target);
+    if (!target) return;
+    var y = target.getBoundingClientRect().top + window.pageYOffset - 84;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+    groups.forEach(function (g) {
+      g.querySelectorAll('.toc-link').forEach(function (l) { l.classList.remove('active'); });
+    });
+    link.classList.add('active');
+  });
+  try {
+    var saved = localStorage.getItem('xj-doc-tab');
+    if (saved === 'blog') { switchTo('blog'); }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
