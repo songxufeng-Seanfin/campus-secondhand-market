@@ -133,7 +133,7 @@
 <hr>
 <span class="anchor" id="0-这份文档怎么读"></span>
 <h2 id="sec-1">0. 这份文档怎么读</h2>
-<p>这份文档按<strong>由外向内</strong>的顺序写：从你眼前的浏览器，一层层剥到硬盘里那个数据库文件。每一层先说「这一层在干什么」，再给专业名词的白话解释，最后才落到具体代码。</p>
+<p>这份文档从浏览器写起，一层层剥到硬盘里那个数据库文件：先是页面上能看见什么，再一次请求怎么走，然后 Django 内部怎么调度，最后数据存在哪。</p>
 <p><strong>三种读法，按需挑一种：</strong></p>
 <div class="table-wrap"><table><thead><tr><th>想达到什么</th><th>读到哪里</th><th>读完能说什么</th></tr></thead><tbody><tr><td>大概知道项目怎么跑起来的</td><td>第 1～3 章</td><td>「一次刷新会发生什么、报错卡在哪一站」</td></tr><tr><td>知道每个功能是怎么做出来的</td><td>第 4～6 章</td><td>「收藏/私聊/下单分别改了哪些文件、为什么要这么写」</td></tr><tr><td>知道坑在哪、以后怎么防</td><td>第 7～9 章</td><td>「数据为什么会丢、403/404/405 到底是什么」</td></tr></tbody></table></div>
 <p><strong>两个约定，先说清楚：</strong></p>
@@ -252,7 +252,7 @@ python manage.py migrate               # 按说明书真的去改数据库</code
 <p><strong>这一层讲什么</strong>：数据长什么样、表之间怎么连、为什么加约束、状态怎么流转。 <strong>会碰到的新词</strong>：表 / 字段 / 主键 / 外键、约束、索引、事务、状态机、聚合。</p>
 <h3>5.1 九张表与关系</h3>
 <div class="table-wrap"><table><thead><tr><th>表</th><th>白话：存什么</th><th>关键外键</th></tr></thead><tbody><tr><td><code>accounts_user</code></td><td>用户（用户名、密码哈希、手机号、头像）</td><td>—</td></tr><tr><td><code>goods_category</code></td><td>6 个分类（教材书籍 / 数码电子 / …）</td><td>—</td></tr><tr><td><code>goods_product</code></td><td>商品（标题、描述、售价、原价、成色、封面、地点、包邮设置、浏览量、是否售出）</td><td>→ 卖家、→ 分类</td></tr><tr><td><code>goods_order</code></td><td>订单（成交价快照、交易方式、收货信息、运费、支付状态、状态）</td><td>→ 商品、→ 买家、→ 卖家</td></tr><tr><td><code>goods_favorite</code></td><td>收藏（谁 + 哪件商品）</td><td>→ 用户、→ 商品</td></tr><tr><td><code>goods_productmessage</code></td><td>商品详情页的公开留言</td><td>→ 商品、→ 留言人</td></tr><tr><td><code>goods_conversation</code></td><td>一对一私聊会话</td><td>→ 商品、→ 买家、→ 卖家</td></tr><tr><td><code>goods_chatmessage</code></td><td>会话里的每条消息（含已读标记）</td><td>→ 会话、→ 发送者</td></tr><tr><td><code>goods_rating</code></td><td>交易互评（1～5 星 + 评语）</td><td>→ 订单、→ 评价人、→ 被评价人</td></tr></tbody></table></div>
-<p><strong>一句话串起来</strong>：一个用户发布多件商品 → 另一个用户对某件商品发起一个会话 → 聊完下一笔订单 → 订单完成后双方各留一条评价。<strong>所有功能都是这九张表在增删改查。</strong></p>
+<p>串起来看：一个用户发布多件商品，另一个用户对某件商品发起会话，聊完下一笔订单，完成后双方各留一条评价。所有功能落到数据库，都是这九张表的增删改查。</p>
 <h3>5.2 订单状态机</h3>
 <p><strong>状态机</strong>（State Machine，规定「哪些状态能变成哪些状态」）写在 <code>goods/models.py:150-162</code>，视图里逐个校验：</p>
 <pre><code>pending   待卖家确认  ──卖家确认──→  accepted  待收货  ──确认收货──→  completed 已完成
@@ -406,13 +406,13 @@ MEDIA_ROOT = DATA_DIR / &#x27;media&#x27;</code></pre>
 <hr>
 <p><strong>文档结束。</strong> 建议的下一步：挑附录 A 那一格，在 <code>templates/product_detail.html:119</code> 把「收藏这件好物」改成自己想说的话，刷新页面看变化——整个项目就从「看懂」变成「改过」了。</p></article>
     <article id="doc-blog"><h1>从 0 到 1：我用 Django 做了一个真的能交易的校园二手平台</h1>
-<blockquote><strong>闲小集</strong> · 一个面向学生的校园二手交易集市<br>技术栈：Python 3.13 / Django 5.2.19 / SQLite / Bootstrap 5 / Pillow<br>代码：主要文件约 5,300 行 · 9 张数据表 · 15 个页面模板<br>源码：https://github.com/songxufeng-Seanfin/campus-secondhand-market<br>在线：https://xianxiaoji-market.app.workbuddy.host/?sharecode=LCIVOQTNSK</blockquote>
+<blockquote><strong>闲小集</strong> · 一个面向学生的校园二手交易集市<br>技术栈：Python 3.13 / Django 5.2.19 / SQLite / Bootstrap 5 / Pillow<br>代码：主要文件约 5,300 行 · 9 张数据表 · 15 个页面模板<br>源码：https://github.com/songxufeng-Seanfin/campus-secondhand-market<br>早期演示地址（后面加的信用体系、手机端 Tab 和 PWA 以仓库版本为准）：https://xianxiaoji-market.app.workbuddy.host/?sharecode=LCIVOQTNSK</blockquote>
 <hr>
 <span class="anchor" id="写在前面"></span>
 <h2 id="sec-1">写在前面</h2>
 <p>校园里卖闲置，大多靠群聊刷屏：一本书的照片发出来，三分钟就被新消息顶没了；想找辆自行车得翻半天聊天记录；交易全靠「你信我我也信你」。</p>
 <p>所以我想做的不是又一个「商品展示页」，而是一个<strong>能走完整条链路</strong>的小集市：从发布、浏览、议价，到下单、完成交易、互相评价。这篇文章记录它是怎么一层层搭起来的，也记录几个把我卡了很久的坑。</p>
-<p>如果你也在学 Web 开发，希望读完能带走一句话：<strong>一个网站看着有十几个功能，其实是同一套骨架重复搭了十几次。</strong></p>
+<p>写得多了才发现，十几个功能其实是同一套骨架重复搭了很多遍，这篇就按这个顺序往下记。</p>
 <hr>
 <span class="anchor" id="一先看成品四块功能"></span>
 <h2 id="sec-2">一、先看成品：四块功能</h2>
@@ -452,7 +452,7 @@ Pillow</code></pre>
 <span class="anchor" id="四数据怎么设计九张表撑起整个集市"></span>
 <h2 id="sec-5">四、数据怎么设计：九张表撑起整个集市</h2>
 <p>想清楚「存什么」，功能就成型了一半。九张表：用户、分类、商品、订单、收藏、商品留言、私聊会话、会话消息、交易评价。</p>
-<p>一句话串起来：<strong>一个用户发布多件商品 → 另一个用户对某件商品发起一个会话 → 聊完下一笔订单 → 完成后双方各留一条评价。</strong></p>
+<p>串起来看：一个用户发布多件商品，另一个用户对某件商品发起会话，聊完下一笔订单，完成后双方各留一条评价。</p>
 <h3>订单是个状态机</h3>
 <p><strong>状态机</strong>就是规定「哪些状态能变成哪些状态」：</p>
 <pre><code>pending 待确认 ──卖家确认──→ accepted 待收货 ──确认收货──→ completed 已完成
@@ -535,9 +535,9 @@ MEDIA_ROOT = DATA_DIR / &quot;media&quot;</code></pre>
 <span class="anchor" id="十回头看这个项目到底给了我什么"></span>
 <h2 id="sec-11">十、回头看：这个项目到底给了我什么</h2>
 <p>功能清单可以罗列很长，但真正留下的是三样东西。</p>
-<p><strong>第一，学会按「层」看东西。</strong> 以前看到一个页面是一整块；现在会自动拆：谁画的（HTML/CSS）、网址交给谁（路由）、干了什么活（视图）、存在哪（模型 / 数据库）。拆开之后，报错不再是天书，而是「卡在第几站」。</p>
-<p><strong>第二，知道「防」比「做」更花时间。</strong> 收藏按钮真正的核心只有 5 行，但 POST 而非 GET、CSRF 凭证、<code>request.user</code>、唯一约束、PRG、相对跳转校验，全是围着这 5 行加的。写代码几分钟，验证和兜底是它的好几倍。</p>
-<p><strong>第三，需求的判断力是练出来的。</strong> 从「私聊要像微信那样是独立界面、还要能和不同商品不同买家聊」到「会话顶部要有商品横幅和直接购买」，这些不是语法问题，是把一个模糊的想法拆成表、路由、视图、模板四格的能力。</p>
+<p>最明显的是看东西的方式变了。 以前看到一个页面是一整块；现在会自动拆：谁画的（HTML/CSS）、网址交给谁（路由）、干了什么活（视图）、存在哪（模型 / 数据库）。拆开之后，报错不再是天书，而是「卡在第几站」。</p>
+<p>另一个是「防」比「做」更花时间。 收藏按钮真正的核心只有 5 行，但 POST 而非 GET、CSRF 凭证、<code>request.user</code>、唯一约束、PRG、相对跳转校验，全是围着这 5 行加的。写代码几分钟，验证和兜底是它的好几倍。</p>
+<p>还有判断需求这件事。 从「私聊要像微信那样是独立界面、还要能和不同商品不同买家聊」到「会话顶部要有商品横幅和直接购买」，这些不是语法问题，是把一个模糊的想法拆成表、路由、视图、模板四格的能力。</p>
 <p>下一步打算做的：多图上传、个人资料编辑、把 3 秒轮询换成 WebSocket 实时推送，以及真正上生产（gunicorn + Nginx + PostgreSQL、关掉 DEBUG）。每一条都能独立做，不影响现有功能。</p>
 <hr>
 <span class="anchor" id="附本地跑起来"></span>
@@ -547,7 +547,7 @@ python manage.py migrate
 python manage.py seed_demo
 python manage.py runserver</code></pre>
 <p>打开 <code>http://127.0.0.1:8000</code>。演示数据包含 6 个分类、4 个账号、8 件带封面的商品，以及订单 / 留言 / 私聊 / 评价，一条命令就是一个完整集市。</p>
-<p>如果你也是刚入门，我的建议是：<strong>先别急着读完整份代码。</strong> 挑最短的「收藏」按钮，看一次点击怎么走完那六站，改一句中文，刷新看变化。整个项目就是从这一格开始，慢慢长出来的。</p>
+<p>真要上手读，我会从「收藏」按钮开始：它最短，看一次点击怎么走完那六站，改一句中文，刷新看变化。整个项目就是从这一格长出来的。</p>
 <hr>
 <p><em>项目代码与完整技术文档见仓库 <code>docs/technical-doc.md</code>。</em></p></article>
   </main>
